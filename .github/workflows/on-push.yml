@@ -1,0 +1,114 @@
+name: Handle Push
+on:
+  push:
+    branches:
+      - '**'                      # respond to a push to any branch
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'    # respond to any release tags with semantic versioning
+
+env:
+  GRADLE_CACHE_PATH: |
+    ~/.gradle/caches
+    ~/.gradle/wrapper
+
+jobs:
+  # Run the tests on any branch or tag push
+  run-tests:
+    strategy:
+      matrix:
+        include:
+          - project: Library
+            gradle-arguments: testReleaseUnitTest
+            base-folder: Armadillo
+            test-report-folder: testReleaseUnitTest
+          - project: Test App
+            gradle-arguments: :TestApp:testArmlocalReleaseUnitTest
+            base-folder: TestApp
+            test-report-folder: testArmlocalReleaseUnitTest
+
+    name: Run ${{ matrix.project }} Tests
+    runs-on: ubuntu-latest
+    steps:
+      # Clone the repo
+      - name: Clone Repo
+        uses: actions/checkout@v2
+
+      # Cache the gradle build dependencies for faster builds
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.GRADLE_CACHE_PATH }}
+          key: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-
+
+      # Test using gradle
+      - name: Run ${{ matrix.project }} Tests
+        run: ./gradlew ${{ matrix.gradle-arguments }} --warning-mode all
+
+      # Upload the html test report as a build artifact for easier debugging
+      - name: Upload Test Report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.test-group }} Test Reports
+          path: ${{ matrix.base-folder }}/build/reports/tests/${{ matrix.test-report-folder }}/*
+
+      # Upload XML logs as build artifacts (accessible from the Summary page of the run)
+      - name: Upload JUnit Logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.test-group }} Testing Logs
+          path: "${{ matrix.base-folder }}/build/test-results/test*UnitTest/TEST-*.xml"
+
+  # If the workflow was started on the main branch then publish the library and test app. If started on a release branch publish only the library.
+  publish-artifact-to-github-packages-or-s3:
+    name: Publish ${{ matrix.project }} Release
+    runs-on: ubuntu-latest
+    needs: run-tests
+    strategy:
+      matrix:
+        include:
+          - project: Library
+            gradle-arguments: :Armadillo:assembleRelease
+            artifact-name: Armadillo.aar
+            artifact-path: Armadillo/build/outputs/aar/Armadillo-release.aar
+            retention-days: 400
+          - project: Test App
+            gradle-arguments: :TestApp:assembleArmLocalRelease
+            artifact-name: TestApp.apk
+            artifact-path: TestApp/build/outputs/apk/armlocal/release/TestApp-armlocal-release.apk
+            retention-days: 7
+    steps:
+      # Retrieve the repo
+      - name: Clone Repo
+        uses: actions/checkout@v2
+
+      # Cache the gradle build dependencies for faster builds
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.GRADLE_CACHE_PATH }}
+          key: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-
+
+      # Build using gradle
+      - name: Build ${{ matrix.project }} Release
+        run: ./gradlew ${{ matrix.gradle-arguments }}
+
+      # Push the Library to Github packages
+      - name: Publish Release
+        if: matrix.project == 'Library' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        env:
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_PASSWORD: ${{ github.token }}
+        run: |
+          ./gradlew publishReleaseAarPublicationToGitHubPackagesRepository
+
+      # Upload the AAR file as a build artifact (accessible from the Summary page of the run)
+      - name: Upload AAR file
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-path }}
+          retention-days: ${{ matrix.retention-days }}

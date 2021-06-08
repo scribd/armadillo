@@ -1,0 +1,17 @@
+<resources>
+    <string name="arm_app_name" translatable="false">Armadillo</string>
+    <string name="arm_title">Title: %s</string>
+    <string name="arm_current_chapter">Chapter: %1$s out of %2$s</string>
+    <string name="arm_state_update_count">%d AppState Updates</string>
+    <string name="arm_position_duration">%1$s / %2$s (%3$s)</string>
+    <string name="arm_duration_unknown">Unknown</string>
+    <string name="arm_playback_speed">Playback Speed: %.1f</string>
+
+    <!-- Download Strings -->
+    <skip/>
+    <string name="arm_default_download_channel">Downloads</string>
+    <string name="arm_downloading">Downloading…</string>
+    <string name="arm_download_state">Download State: %s</string>
+    <string name="arm_download_percent">%d%% Downloaded</string>
+    <string name="arm_playback_notification_channel">Audiobook player</string>
+</resources>

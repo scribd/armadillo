@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">ArmadilloTestApp</string>
+
+    <string name="downloads_channel">Downloads</string>
+
+    <string name="download_title">Downloading</string>
+    <string name="download_message">Downloading %d titles</string>
+
+    <string name="speed_button_text">Set speed: %.1f</string>
+    <string name="audio_notification_pause_action">Pause</string>
+    <string name="audio_notification_play_action">Play</string>
+    <string name="audio_skip_back_action">Skip Backward</string>
+    <string name="audio_skip_fwd_action">Skip Forward</string>
+
+    <string name="clear_playback_cache_size">Clear Playback Cache: %s</string>
+    <string name="remove_downloads_with_size">Remove All Downloads: %s</string>
+</resources>

@@ -1,0 +1,55 @@
+# built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+proguard/
+R.java
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# vi swap files
+*.swp
+
+# emacs
+*~
+
+# android studio / intellij stuff
+.idea/
+*/build/*
+/build
+.gradle/
+*.iml
+
+# osx stuff
+.DS_Store
+
+.metadata
+
+# Crashlytics
+Scribd/res/values/com_crashlytics_export_strings.xml
+
+# Build metadata (generated during compile then deleted, but can get left in place sometimes)
+Scribd/src/com/scribd/app/build/BuildMetadata.java
+
+# Generated as a side effect of 'android update project' in build scripts, but not used by the IDE
+project.properties
+proguard-project.txt
+build.xml
+
+# layout inspector
+/captures
+
+# VS code
+.vscode
+**/.project
+**/.settings

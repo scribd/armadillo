@@ -1,0 +1,157 @@
+package com.scribd.armadillo
+
+import android.support.v4.media.session.MediaControllerCompat
+import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.times
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.whenever
+import com.scribd.armadillo.actions.MetadataUpdateAction
+import com.scribd.armadillo.models.ArmadilloState
+import com.scribd.armadillo.models.Chapter
+import com.scribd.armadillo.models.InternalState
+import com.scribd.armadillo.models.PlaybackInfo
+import com.scribd.armadillo.models.PlaybackState
+import com.scribd.armadillo.playback.MediaSessionConnection
+import com.scribd.armadillo.time.milliseconds
+import io.reactivex.subjects.BehaviorSubject
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+// Fixes issue in mockito. typealias is insufficient https://github.com/nhaarman/mockito-kotlin/issues/272#issuecomment-513971465
+private interface Callback : (MediaControllerCompat.TransportControls) -> Unit
+
+@Config(manifest = Config.NONE)
+@RunWith(RobolectricTestRunner::class)
+class ArmadilloPlayerChoreographerTest {
+    @Rule
+    @JvmField
+    val daggerComponentRule = DaggerComponentRule()
+
+    private lateinit var choreographer: ArmadilloPlayerChoreographer
+
+    @Before
+    fun setUp() {
+        choreographer = ArmadilloPlayerChoreographer()
+        choreographer.stateModifier = mock()
+    }
+
+    @Test
+    fun currentState_returnsCurrentState() {
+        val state: ArmadilloState = mock()
+        val stateProvider: StateStore.Provider = mock()
+
+        val stateSubject = BehaviorSubject.create<ArmadilloState>()
+        stateSubject.onNext(state)
+
+        whenever(stateProvider.stateSubject).thenReturn(stateSubject)
+
+        choreographer.stateProvider = stateProvider
+        assertThat(choreographer.armadilloStateObservable.value).isEqualTo(state)
+    }
+
+    @Test
+    fun updateMetadata_transmitsMetadataAction() {
+        // Set up playback state
+        val transportControls = mock<MediaControllerCompat.TransportControls>()
+        val playbackConnection = mock<MediaSessionConnection>()
+        whenever(playbackConnection.transportControls).thenReturn(transportControls)
+        choreographer.playbackConnection = playbackConnection
+
+        val playbackState = PlaybackState.PAUSED
+        val playbackInfo: PlaybackInfo = mock()
+        whenever(playbackInfo.playbackState).thenReturn(playbackState)
+
+        val stateProvider: StateStore.Provider = mock()
+        val state = ArmadilloState(
+            playbackInfo = playbackInfo,
+            internalState = InternalState(true),
+            downloadInfo = emptyList())
+        whenever(stateProvider.currentState).thenReturn(state)
+
+        val stateSubject = BehaviorSubject.create<ArmadilloState>()
+        whenever(stateProvider.stateSubject).thenReturn(stateSubject)
+        stateSubject.onNext(state)
+
+        choreographer.stateProvider = stateProvider
+
+        val title = "New Title"
+        val chapters = listOf(
+            Chapter("New Chapter 0",
+            1,
+            2,
+            123.milliseconds,
+            200.milliseconds)
+        )
+        choreographer.updatePlaybackMetadata(title, chapters)
+
+        verify(choreographer.stateModifier).dispatch(MetadataUpdateAction(title, chapters))
+    }
+
+    @Test
+    fun doWhenPlaybackReady_playbackReady_invokes() {
+        val transportControls = mock<MediaControllerCompat.TransportControls>()
+        val playbackConnection = mock<MediaSessionConnection>()
+        whenever(playbackConnection.transportControls).thenReturn(transportControls)
+        choreographer.playbackConnection = playbackConnection
+
+        val stateProvider: StateStore.Provider = mock()
+        val state = ArmadilloState(
+            internalState = InternalState(true),
+            downloadInfo = emptyList())
+        whenever(stateProvider.currentState).thenReturn(state)
+
+        val stateSubject = BehaviorSubject.create<ArmadilloState>()
+        whenever(stateProvider.stateSubject).thenReturn(stateSubject)
+        stateSubject.onNext(state)
+
+        choreographer.stateProvider = stateProvider
+
+        val callback = mock<Callback>()
+
+        choreographer.doWhenPlaybackReady(callback)
+        verify(callback).invoke(eq(transportControls))
+    }
+
+    @Test
+    fun doWhenPlaybackReady_playbackNotReady_invokesWhenReady() {
+        val playbackConnection = mock<MediaSessionConnection>()
+        val transportControls = mock<MediaControllerCompat.TransportControls>()
+        whenever(playbackConnection.transportControls).thenReturn(null)
+        choreographer.playbackConnection = playbackConnection
+
+        val stateProvider: StateStore.Provider = mock()
+        // Not Ready
+        whenever(stateProvider.currentState).thenReturn(ArmadilloState(
+            internalState = InternalState(false),
+            downloadInfo = emptyList()))
+
+        val stateSubject = BehaviorSubject.create<ArmadilloState>()
+        whenever(stateProvider.stateSubject).thenReturn(stateSubject)
+
+        choreographer.stateProvider = stateProvider
+
+        val callback = mock<Callback>()
+
+        choreographer.doWhenPlaybackReady(callback)
+        verify(callback, times(0)).invoke(eq(transportControls))
+
+        // Transport controls ready, but engine still not ready
+        whenever(playbackConnection.transportControls).thenReturn(transportControls)
+        stateSubject.onNext((ArmadilloState(
+            internalState = InternalState(false),
+            downloadInfo = emptyList())))
+        verify(callback, times(0)).invoke(eq(transportControls))
+
+        // Ready
+        stateSubject.onNext((ArmadilloState(
+            internalState = InternalState(true),
+            downloadInfo = emptyList())))
+        verify(callback, times(1)).invoke(eq(transportControls))
+    }
+}

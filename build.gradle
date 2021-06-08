@@ -1,0 +1,56 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext.githubUsername = "$System.env.GITHUB_USERNAME"
+    ext.githubPassword = "$System.env.GITHUB_PASSWORD"
+
+    ext.kotlin_version = '1.4.30'
+
+    apply from: "$project.rootDir/gradle/shared.gradle"
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.0.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    apply from: "$project.rootDir/gradle/shared.gradle"
+
+    // More verbose logging when running tests
+    tasks.withType(Test) {
+        afterTest { desc, result ->
+            if (result.getResultType() != TestResult.ResultType.SUCCESS) {
+                def status
+                switch(result.getResultType()) {
+                    case TestResult.ResultType.SUCCESS: status = "✅"; break
+                    case TestResult.ResultType.SKIPPED: status = "⚠️"; break
+                    default: status = "❌"; break
+                }
+                println "$status - ${desc.getClassName()}.${desc.getDisplayName()}()"
+            }
+        }
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def totalTime = String.format("%.1f", (result.endTime - result.startTime)/1000.0)
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped) in ${totalTime}s"
+            }
+        }
+    }
+
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            android {
+                buildToolsVersion "${project.BUILD_TOOLS_VERSION}"
+            }
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

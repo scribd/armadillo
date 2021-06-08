@@ -1,0 +1,109 @@
+buildscript {
+    apply from: "$project.rootDir/gradle/shared.gradle"
+
+    dependencies {
+        classpath "digital.wup:android-maven-publish:${MAVEN_PUBLISH_VERSION}"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${DOKKA_VERSION}"
+    }
+}
+
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+    // Extension of maven plugin that properly handles android dependencies
+    id 'digital.wup.android-maven-publish' version "${MAVEN_PUBLISH_VERSION}"
+    id 'org.jetbrains.dokka' version "${DOKKA_VERSION}" // Official Kotlin documentation engine - does both Kotlin and Java docs
+}
+
+android {
+    compileSdkVersion 30
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName project.LIBRARY_VERSION
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'proguard-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+        }
+    }
+
+    resourcePrefix 'arm'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
+
+    implementation "com.google.android.exoplayer:exoplayer-core:${EXOPLAYER_VERSION}"
+    implementation "com.google.android.exoplayer:exoplayer-hls:${EXOPLAYER_VERSION}"
+    implementation "com.google.android.exoplayer:extension-mediasession:${EXOPLAYER_VERSION}"
+
+    implementation "io.reactivex.rxjava2:rxjava:${RXJAVA_VERSION}"
+    implementation "io.reactivex.rxjava2:rxandroid:${RXANDROID_VERSION}"
+    implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
+    kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
+    implementation 'androidx.media:media:1.0.0'
+    testImplementation "org.robolectric:robolectric:4.5.1"
+    testImplementation 'junit:junit:4.12'
+    testImplementation("org.assertj:assertj-core:3.10.0")
+    testImplementation "org.mockito:mockito-core:2.28.2"
+    testImplementation("com.nhaarman:mockito-kotlin:1.6.0") {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-reflect'
+    }
+}
+
+task androidSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier.set('sources')
+}
+
+// Let dokka do the javadoc creation, then pick up its output as our artifact
+task androidJavadocsJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set('javadoc')
+    from dokkaJavadoc.outputDirectory
+}
+
+// Configure AAR to publish
+publishing {
+
+    publications {
+        android.libraryVariants.all { variant ->
+            "${variant.name.capitalize()}Aar"(MavenPublication) {
+                groupId project.PACKAGE_NAME
+                version project.LIBRARY_VERSION
+                artifactId project.getName().toLowerCase()
+                from components.findByName("android${variant.name.capitalize()}")
+                // Add sources to artifact
+                artifact androidSourcesJar
+                // Add javadocs
+                artifact androidJavadocsJar
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/scribd/armadillo")
+            credentials {
+                username = "$githubUsername"
+                password = "$githubPassword"
+            }
+        }
+    }
+}
