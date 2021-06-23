@@ -41,7 +41,7 @@ The library is hosted with Github packages so you will need to add the Github re
  [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#authenticating-to-github-packages). But you will need to:
 
 1. Generate a personal access token from your Github account.
-1. Add the Github package registry with authentication to your `build.gradle` file.
+2. Add the Github package registry with authentication to your `build.gradle` file.
 
 ```kotlin
 maven {
