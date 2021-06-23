@@ -36,6 +36,24 @@ Armadillo is a fully featured audio player. Armadillo leverages [Google's Exopla
 
 ## Basic Usage
 
+The library is hosted with Github packages so you will need to add the Github registry with authentication to your build.gradle file. See
+ the official docs on authenticating 
+ [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#authenticating-to-github-packages). But you will need to:
+
+1. Generate a personal access token from your Github account.
+1. Add the Github package registry with authentication to your `build.gradle` file.
+
+```kotlin
+maven {
+   name = "GitHubPackages"
+   url = uri("https://maven.pkg.github.com/scribd/armadillo-and")
+   credentials {
+       username = "github_username"
+       password = "github_access_token"
+   }
+}
+```
+
 It's easy to get started. Head over to the TestApp for more details.
 
 ```kotlin
