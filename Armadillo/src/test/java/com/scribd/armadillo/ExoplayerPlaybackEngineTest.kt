@@ -5,21 +5,20 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Timeline
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.nhaarman.mockito_kotlin.whenever
 import com.scribd.armadillo.actions.PlaybackProgressAction
 import com.scribd.armadillo.models.AudioPlayable
-import com.scribd.armadillo.models.PlaybackProgress
 import com.scribd.armadillo.playback.ExoplayerPlaybackEngine
 import com.scribd.armadillo.time.milliseconds
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyZeroInteractions
+import org.mockito.kotlin.whenever
 
 class ExoplayerPlaybackEngineTest {
     private lateinit var playbackEngine: ExoplayerPlaybackEngine

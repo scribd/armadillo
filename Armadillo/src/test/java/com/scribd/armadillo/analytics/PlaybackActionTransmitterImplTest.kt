@@ -1,13 +1,5 @@
 package com.scribd.armadillo.analytics
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.nhaarman.mockito_kotlin.whenever
 import com.scribd.armadillo.DaggerComponentRule
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.models.ArmadilloState
@@ -24,6 +16,12 @@ import io.reactivex.subjects.BehaviorSubject
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class PlaybackActionTransmitterImplTest {
 
