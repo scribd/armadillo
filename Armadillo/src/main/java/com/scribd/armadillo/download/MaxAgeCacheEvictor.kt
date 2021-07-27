@@ -33,15 +33,16 @@ internal class MaxAgeCacheEvictor(
     internal val content = mutableMapOf<Int, CacheSpan>()
 
     /**
-     * This structure will track how long a span has been cached for. This should only be modified when a span is added or removed. An
-     * updated span should not trigger any changes here. The OS often moves around [CacheSpan]s internally to optimize storage, these
-     * updates do not correspond to refreshes with the network and therefore should not modify the expiration times.
+     * Tracks how long a span has been cached for. Only be modified when a span is added or removed. An
+     * update does not trigger changes. The OS often moves around [CacheSpan]s internally to optimize storage, these
+     * updates do not correspond to refreshes with the network and therefore do not modify the expiration times.
      */
     @VisibleForTesting
     internal val expirations : Queue<CacheSpanExpiration> = LinkedList()
 
     /**
-     * This structure will handle lru ordering
+     * Handles lru ordering.
+     * New elements are enqueued to head and old are dequeued from tail
      */
     @VisibleForTesting
     internal val lruArr = LinkedList<Int>()
@@ -74,7 +75,7 @@ internal class MaxAgeCacheEvictor(
         }
 
         lruArr.remove(key)
-        lruArr.add(key)
+        lruArr.addFirst(key)
         content[key] = span
         evictCache(cache, 0)
     }
