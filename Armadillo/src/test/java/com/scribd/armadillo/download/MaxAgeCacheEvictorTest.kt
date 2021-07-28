@@ -8,25 +8,25 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 
 class MaxAgeCacheEvictorTest {
-
-    private lateinit var cacheEvictor: MaxAgeCacheEvictor
-    private lateinit var cache: Cache
-    private lateinit var clock: MaxAgeCacheEvictor.Clock
-
     private companion object {
         const val MAX_BYTES = 10L
         const val CONTENT_MAX_AGE_MILLIS = 10
     }
 
+    private lateinit var cacheEvictor: MaxAgeCacheEvictor
+    private lateinit var cache: Cache
+    private lateinit var fakeClock: MaxAgeCacheEvictor.Clock
+
     private var currentTimeMillis = 1000L
 
     @Before
     fun setUp() {
-        clock = object : MaxAgeCacheEvictor.Clock {
+        currentTimeMillis = 1000L
+        fakeClock = object : MaxAgeCacheEvictor.Clock {
             override fun currentTimeMillis(): Long = currentTimeMillis
         }
         cache = mock()
-        cacheEvictor = MaxAgeCacheEvictor(MAX_BYTES, CONTENT_MAX_AGE_MILLIS, clock)
+        cacheEvictor = MaxAgeCacheEvictor(MAX_BYTES, CONTENT_MAX_AGE_MILLIS, fakeClock)
     }
 
     @Test
@@ -40,6 +40,7 @@ class MaxAgeCacheEvictorTest {
 
         // Assert outcome
         assertThat(cacheEvictor.content.containsKey(cacheSpan.key())).isFalse
+        assertThat(cacheEvictor.expirations.isEmpty()).isTrue
         assertThat(cacheEvictor.currentSize).isEqualTo(0)
     }
 
@@ -52,7 +53,8 @@ class MaxAgeCacheEvictorTest {
 
         // Verify item is added
         assertThat(cacheEvictor.content[key]).isEqualTo(cacheSpan)
-        assertThat(cacheEvictor.expirations.poll()).isEqualTo(MaxAgeCacheEvictor.CacheSpanExpiration(key, currentTimeMillis + CONTENT_MAX_AGE_MILLIS))
+        assertThat(cacheEvictor.expirations.pollLast()).isEqualTo(
+            MaxAgeCacheEvictor.CacheSpanExpiration(key, currentTimeMillis + CONTENT_MAX_AGE_MILLIS))
         assertThat(cacheEvictor.currentSize).isEqualTo(3L)
     }
 
@@ -74,7 +76,7 @@ class MaxAgeCacheEvictorTest {
         val expectedExpiration = MaxAgeCacheEvictor.CacheSpanExpiration(
             updatedCacheSpan.key(),
             initialTimeMillis + CONTENT_MAX_AGE_MILLIS)
-        assertThat(cacheEvictor.expirations.poll()).isEqualTo(expectedExpiration)
+        assertThat(cacheEvictor.expirations.pollLast()).isEqualTo(expectedExpiration)
 
         assertThat(cacheEvictor.content.size).isEqualTo(1)
         assertThat(cacheEvictor.content[updatedCacheSpan.key()]).isEqualTo(updatedCacheSpan)
@@ -104,14 +106,15 @@ class MaxAgeCacheEvictorTest {
         assertThat(cacheEvictor.content.size).isEqualTo(1)
         assertThat(cacheEvictor.content[validContent.key()]).isEqualTo(validContent)
         assertThat(cacheEvictor.expirations.size).isEqualTo(1)
+        assertThat(cacheEvictor.expirations.pollLast()!!.key).isEqualTo(validContent.key())
         assertThat(cacheEvictor.lruArr.size).isEqualTo(1)
     }
 
     @Test
     fun lruOrdering_itemsAdded_lruOrdering() {
-        val spanA = CacheSpan("spanA",0, 2L)
+        val spanA = CacheSpan("spanA", 0, 2L)
         val spanB = CacheSpan("spanB", 2, 2L)
-        val spanC = CacheSpan("spanC",4, 2L)
+        val spanC = CacheSpan("spanC", 4, 2L)
         val spans = listOf(spanA, spanB, spanC)
 
         // Add spans
@@ -127,9 +130,9 @@ class MaxAgeCacheEvictorTest {
 
     @Test
     fun lruOrdering_itemsUpdated_lruOrdering() {
-        val spanA = CacheSpan("spanA",0, 2L)
+        val spanA = CacheSpan("spanA", 0, 2L)
         val spanB = CacheSpan("spanB", 2, 2L)
-        val spanC = CacheSpan("spanC",4, 2L)
+        val spanC = CacheSpan("spanC", 4, 2L)
         val spans = listOf(spanA, spanB, spanC)
 
         // Add spans
@@ -142,8 +145,8 @@ class MaxAgeCacheEvictorTest {
 
         // verify ordering
         val lruArr = cacheEvictor.lruArr
-        assertThat(lruArr[0]).isEqualTo(spanB.key())
-        assertThat(lruArr[1]).isEqualTo(spanC.key())
-        assertThat(lruArr[2]).isEqualTo(spanA.key())
+        assertThat(lruArr.pollLast()!!).isEqualTo(spanA.key())
+        assertThat(lruArr.pollLast()!!).isEqualTo(spanC.key())
+        assertThat(lruArr.pollLast()!!).isEqualTo(spanB.key())
     }
 }

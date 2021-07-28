@@ -5,8 +5,8 @@ import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.CacheEvictor
 import com.google.android.exoplayer2.upstream.cache.CacheSpan
+import java.util.Deque
 import java.util.LinkedList
-import java.util.Queue
 
 /**
  * This cache evictor will:
@@ -38,14 +38,14 @@ internal class MaxAgeCacheEvictor(
      * updates do not correspond to refreshes with the network and therefore do not modify the expiration times.
      */
     @VisibleForTesting
-    internal val expirations : Queue<CacheSpanExpiration> = LinkedList()
+    internal val expirations: Deque<CacheSpanExpiration> = LinkedList()
 
     /**
      * Handles lru ordering.
      * New elements are enqueued to head and old are dequeued from tail
      */
     @VisibleForTesting
-    internal val lruArr = LinkedList<Int>()
+    internal val lruArr: Deque<Int> = LinkedList()
 
     @VisibleForTesting
     internal var currentSize: Long = 0
@@ -66,11 +66,10 @@ internal class MaxAgeCacheEvictor(
         }
     }
 
-
     override fun onSpanAdded(cache: Cache, span: CacheSpan) {
         val key = span.key()
         if (!content.containsKey(key)) {
-            expirations.add(CacheSpanExpiration(key, expirationTimestamp()))
+            expirations.addFirst(CacheSpanExpiration(key, expirationTimestamp()))
             currentSize += span.length
         }
 
@@ -81,17 +80,16 @@ internal class MaxAgeCacheEvictor(
     }
 
     /**
-     * This triggered by calls in [evictCache] to [Cache.removeSpan]
+     * This is triggered by calls in [evictCache] to [Cache.removeSpan]
      *
      * It is expected that this method will return because all the work is already done in [evictCache].
-     * [expirations] is not handled here as it is already handled in [evictCache]. If the api changes and this
-     * method gets called at other times, discrepancies will not cause issues.
      */
     override fun onSpanRemoved(cache: Cache, span: CacheSpan) {
         val key = span.key()
         content[key] ?: return
         content.remove(key)
         lruArr.remove(key)
+        removeExpiredContent(key)
         currentSize -= span.length
     }
 
@@ -102,9 +100,9 @@ internal class MaxAgeCacheEvictor(
     private fun evictCache(cache: Cache, requiredSpace: Long) {
 
         // remove expired content
-        while (expirations.peek()?.expiration?.isExpired() == true) {
+        while (expirations.peekLast()?.expiration?.isExpired() == true) {
 
-            val expiredWrapper = expirations.poll() ?: continue
+            val expiredWrapper = expirations.pollLast() ?: continue
             val key = expiredWrapper.key
             val expiredSpan = content[key] ?: continue
 
@@ -128,6 +126,17 @@ internal class MaxAgeCacheEvictor(
              * Triggers [onSpanRemoved]
              */
             cache.removeSpan(cacheSpan)
+        }
+    }
+
+    private fun removeExpiredContent(key: Int) {
+        val iterator = expirations.iterator()
+        while (iterator.hasNext()) {
+            val current = iterator.next()
+            if (current.key == key) {
+                expirations.remove(current)
+                break
+            }
         }
     }
 
