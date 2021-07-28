@@ -100,7 +100,7 @@ internal class MaxAgeCacheEvictor(
     private fun evictCache(cache: Cache, requiredSpace: Long) {
 
         // remove expired content
-        while (expirations.peekLast()?.expiration?.isExpired() == true) {
+        while (expirations.peekLast()?.isExpired() == true) {
 
             val expiredWrapper = expirations.pollLast() ?: continue
             val key = expiredWrapper.key
@@ -140,9 +140,8 @@ internal class MaxAgeCacheEvictor(
         }
     }
 
+    private fun CacheSpanExpiration.isExpired() = clock.currentTimeMillis() > expiration
     private fun expirationTimestamp() = clock.currentTimeMillis() + contentMaxAgeMillis
-
-    private fun Long.isExpired(): Boolean = clock.currentTimeMillis() > this
 }
 
 @VisibleForTesting
