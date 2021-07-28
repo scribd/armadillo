@@ -4,5 +4,5 @@
 * First Public Release!
 
 ## 1.0.1
-- update mockito-kotlin version
-- update `MaxAgeCacheEvictor` to use lru behavior if there is no expired content.
+- Updated mockito-kotlin version.
+- Updated `MaxAgeCacheEvictor` to use lru behavior after evicting expired content.
