@@ -61,7 +61,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation("org.assertj:assertj-core:3.10.0")
     testImplementation "org.mockito:mockito-core:2.28.2"
-    testImplementation("com.nhaarman:mockito-kotlin:1.6.0") {
+    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0") {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-reflect'
     }

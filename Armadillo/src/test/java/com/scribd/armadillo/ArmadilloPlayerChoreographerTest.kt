@@ -1,11 +1,6 @@
 package com.scribd.armadillo
 
 import android.support.v4.media.session.MediaControllerCompat
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.times
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
 import com.scribd.armadillo.actions.MetadataUpdateAction
 import com.scribd.armadillo.models.ArmadilloState
 import com.scribd.armadillo.models.Chapter
@@ -20,6 +15,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -83,10 +83,10 @@ class ArmadilloPlayerChoreographerTest {
         val title = "New Title"
         val chapters = listOf(
             Chapter("New Chapter 0",
-            1,
-            2,
-            123.milliseconds,
-            200.milliseconds)
+                1,
+                2,
+                123.milliseconds,
+                200.milliseconds)
         )
         choreographer.updatePlaybackMetadata(title, chapters)
 

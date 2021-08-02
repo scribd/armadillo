@@ -2,10 +2,6 @@ package com.scribd.armadillo.download
 
 import com.google.android.exoplayer2.offline.DownloadIndex
 import com.google.android.exoplayer2.offline.DownloadManager
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.whenever
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.actions.StopTrackingDownloadAction
@@ -16,6 +12,10 @@ import com.scribd.armadillo.models.DownloadState
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
@@ -31,11 +31,12 @@ class ExoplayerDownloadTrackerTest {
     private lateinit var downloadManager: DownloadManager
     private lateinit var stateModifier: StateStore.Modifier
     private lateinit var downloadInfo: DownloadProgressInfo
+
     @Before
     fun setUp() {
         stateModifier = mock()
         downloadManager = mock()
-        val downloadIndex : DownloadIndex = mock()
+        val downloadIndex: DownloadIndex = mock()
         whenever(downloadManager.downloadIndex).thenReturn(downloadIndex)
         exoplayerDownloadTracker = ExoplayerDownloadTracker(mock(), downloadManager, stateModifier)
     }

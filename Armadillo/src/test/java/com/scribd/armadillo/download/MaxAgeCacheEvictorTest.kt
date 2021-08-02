@@ -2,57 +2,59 @@ package com.scribd.armadillo.download
 
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.CacheSpan
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class MaxAgeCacheEvictorTest {
-
-    private lateinit var cacheEvictor: MaxAgeCacheEvictor
-    private lateinit var cache: Cache
-    private lateinit var clock: MaxAgeCacheEvictor.Clock
-
     private companion object {
         const val MAX_BYTES = 10L
         const val CONTENT_MAX_AGE_MILLIS = 10
-        const val CURRENT_TIME_MILLIS = 1000L
     }
+
+    private lateinit var cacheEvictor: MaxAgeCacheEvictor
+    private lateinit var cache: Cache
+    private lateinit var fakeClock: MaxAgeCacheEvictor.Clock
+
+    private var currentTimeMillis = 1000L
 
     @Before
     fun setUp() {
-        clock = mock()
-        whenever(clock.currentTimeMillis()).thenReturn(CURRENT_TIME_MILLIS)
+        currentTimeMillis = 1000L
+        fakeClock = object : MaxAgeCacheEvictor.Clock {
+            override fun currentTimeMillis(): Long = currentTimeMillis
+        }
         cache = mock()
-        cacheEvictor = MaxAgeCacheEvictor(MAX_BYTES, CONTENT_MAX_AGE_MILLIS, clock)
+        cacheEvictor = MaxAgeCacheEvictor(MAX_BYTES, CONTENT_MAX_AGE_MILLIS, fakeClock)
     }
 
     @Test
-    fun onSpanRemoved_cacheIsFull_removesSpanDecrementSize() {
+    fun onSpanRemoved_hasItem_removesSpanDecrementSize() {
         val cacheSpan = CacheSpan("cool", 0, 3L)
-        val key = cacheSpan.key()
-        cacheEvictor.contentAges[key] = MaxAgeCacheEvictor.CachePair(cacheSpan, CURRENT_TIME_MILLIS)
-        cacheEvictor.currentSize = MAX_BYTES
+        // add span
+        cacheEvictor.onSpanAdded(cache, cacheSpan)
 
+        // remove span
         cacheEvictor.onSpanRemoved(cache, cacheSpan)
 
-        assertThat(cacheEvictor.contentAges.containsKey(key)).isFalse
-        assertThat(cacheEvictor.currentSize).isEqualTo(7)
+        // Assert outcome
+        assertThat(cacheEvictor.content.containsKey(cacheSpan.key())).isFalse
+        assertThat(cacheEvictor.expirations.isEmpty()).isTrue
+        assertThat(cacheEvictor.currentSize).isEqualTo(0)
     }
 
     @Test
     fun onSpanAdded_cacheMiss_addsKey() {
-        // Initially it is all empty
-        assertThat(cacheEvictor.contentAges.isEmpty()).isTrue
-        assertThat(cacheEvictor.currentSize).isEqualTo(0L)
-        // Make the call
+        // Add the span
         val cacheSpan = CacheSpan("cool", 0, 3L)
         val key = cacheSpan.key()
         cacheEvictor.onSpanAdded(cache, cacheSpan)
-        // Verify Item is added
-        val expectedCachePair = MaxAgeCacheEvictor.CachePair(cacheSpan, CURRENT_TIME_MILLIS + CONTENT_MAX_AGE_MILLIS)
-        assertThat(cacheEvictor.contentAges[key]).isEqualTo(expectedCachePair)
+
+        // Verify item is added
+        assertThat(cacheEvictor.content[key]).isEqualTo(cacheSpan)
+        assertThat(cacheEvictor.expirations.pollLast()).isEqualTo(
+            MaxAgeCacheEvictor.CacheSpanExpiration(key, currentTimeMillis + CONTENT_MAX_AGE_MILLIS))
         assertThat(cacheEvictor.currentSize).isEqualTo(3L)
     }
 
@@ -60,43 +62,91 @@ class MaxAgeCacheEvictorTest {
     fun onSpanAdded_cacheHit_updatesValue() {
         // Set up contentAges with a piece of content
         val cacheSpan = CacheSpan("cool", 0, 3L)
-        val key = cacheSpan.key()
-        val initialPair = MaxAgeCacheEvictor.CachePair(cacheSpan, CURRENT_TIME_MILLIS + CONTENT_MAX_AGE_MILLIS)
-        cacheEvictor.contentAges[key] = initialPair
-        cacheEvictor.currentSize = 3L
+        cacheEvictor.onSpanAdded(cache, cacheSpan)
+
         // Make a new span with the same position & length
         val updatedCacheSpan = CacheSpan("cool2", 0, 3L)
-        // Make the call
-        cacheEvictor.onSpanAdded(cache, updatedCacheSpan)
-        // Verify item is updated
-        assertThat(cacheEvictor.contentAges.size).isEqualTo(1)
-        assertThat(cacheEvictor.contentAges[updatedCacheSpan.key()]!!.cacheSpan).isEqualTo(updatedCacheSpan)
+
+        // Make the call & advance time
+        val initialTimeMillis = currentTimeMillis
+        currentTimeMillis += 10
+        cacheEvictor.onSpanTouched(cache, cacheSpan, updatedCacheSpan)
+
+        // Verify expiration is not modified
+        val expectedExpiration = MaxAgeCacheEvictor.CacheSpanExpiration(
+            updatedCacheSpan.key(),
+            initialTimeMillis + CONTENT_MAX_AGE_MILLIS)
+        assertThat(cacheEvictor.expirations.pollLast()).isEqualTo(expectedExpiration)
+
+        assertThat(cacheEvictor.content.size).isEqualTo(1)
+        assertThat(cacheEvictor.content[updatedCacheSpan.key()]).isEqualTo(updatedCacheSpan)
         assertThat(cacheEvictor.currentSize).isEqualTo(3L)
     }
 
     @Test
-    fun evictCache_removesExpiredContentOnly() {
+    fun onSpanAdded_removesExpiredContentOnly() {
         // Setup content
-        val expiredContentSpan1 = CacheSpan("expired1", 0, 3L)
-        val expiredContent1 = MaxAgeCacheEvictor.CachePair(expiredContentSpan1, CURRENT_TIME_MILLIS - 1)
+        val spanToExpire1 = CacheSpan("expired1", 0, 3L)
+        cacheEvictor.onSpanAdded(cache, spanToExpire1)
 
-        val expiredContentSpan2 = CacheSpan("expired2", 3, 3L)
-        val expiredContent2 = MaxAgeCacheEvictor.CachePair(expiredContentSpan2, CURRENT_TIME_MILLIS - 2)
+        val spanToExpire2 = CacheSpan("expired2", 3, 3L)
+        cacheEvictor.onSpanAdded(cache, spanToExpire2)
 
-        val notExpiredContentSpan = CacheSpan("valid", 6, 3L)
-        val notExpiredContent = MaxAgeCacheEvictor.CachePair(notExpiredContentSpan, CURRENT_TIME_MILLIS + 1)
+        assertThat(cacheEvictor.expirations.size).isEqualTo(2)
+        assertThat(cacheEvictor.content.size).isEqualTo(2)
 
-        cacheEvictor.contentAges[expiredContentSpan1.key()] = expiredContent1
-        cacheEvictor.contentAges[expiredContentSpan2.key()] = expiredContent2
-        cacheEvictor.contentAges[notExpiredContentSpan.key()] = notExpiredContent
+        // Advance time so previous content is expired
+        currentTimeMillis += CONTENT_MAX_AGE_MILLIS + 1
 
-        // Make the call & Assert
-        assertThat(cacheEvictor.oldestCacheSpan()).isEqualTo(expiredContent2)
-        cacheEvictor.contentAges.remove(expiredContentSpan2.key())
+        // Make the call
+        val validContent = CacheSpan("valid", 6, 3L)
+        cacheEvictor.onSpanAdded(cache, validContent)
 
-        assertThat(cacheEvictor.oldestCacheSpan()).isEqualTo(expiredContent1)
-        cacheEvictor.contentAges.remove(expiredContentSpan1.key())
+        // verify expired content is removed
+        assertThat(cacheEvictor.content.size).isEqualTo(1)
+        assertThat(cacheEvictor.content[validContent.key()]).isEqualTo(validContent)
+        assertThat(cacheEvictor.expirations.size).isEqualTo(1)
+        assertThat(cacheEvictor.expirations.pollLast()!!.key).isEqualTo(validContent.key())
+        assertThat(cacheEvictor.lruArr.size).isEqualTo(1)
+    }
 
-        assertThat(cacheEvictor.oldestCacheSpan()).isEqualTo(notExpiredContent)
+    @Test
+    fun lruOrdering_itemsAdded_lruOrdering() {
+        val spanA = CacheSpan("spanA", 0, 2L)
+        val spanB = CacheSpan("spanB", 2, 2L)
+        val spanC = CacheSpan("spanC", 4, 2L)
+        val spans = listOf(spanA, spanB, spanC)
+
+        // Add spans
+        spans.forEach {
+            cacheEvictor.onSpanAdded(cache, it)
+        }
+
+        // verify ordering
+        cacheEvictor.lruArr.reversed().forEachIndexed { index, spanKey ->
+            assertThat(spanKey).isEqualTo(spans[index].key())
+        }
+    }
+
+    @Test
+    fun lruOrdering_itemsUpdated_lruOrdering() {
+        val spanA = CacheSpan("spanA", 0, 2L)
+        val spanB = CacheSpan("spanB", 2, 2L)
+        val spanC = CacheSpan("spanC", 4, 2L)
+        val spans = listOf(spanA, spanB, spanC)
+
+        // Add spans
+        spans.forEach {
+            cacheEvictor.onSpanAdded(cache, it)
+        }
+
+        // updates
+        cacheEvictor.onSpanAdded(cache, spanB)
+
+        // verify ordering
+        val lruArr = cacheEvictor.lruArr
+        assertThat(lruArr.pollLast()!!).isEqualTo(spanA.key())
+        assertThat(lruArr.pollLast()!!).isEqualTo(spanC.key())
+        assertThat(lruArr.pollLast()!!).isEqualTo(spanB.key())
     }
 }

@@ -2,17 +2,14 @@ package com.scribd.armadillo.mediaitems
 
 import android.support.v4.media.MediaBrowserCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
 import com.scribd.armadillo.ArmadilloPlayer
 import com.scribd.armadillo.StateStore
-import com.scribd.armadillo.error.BadMediaHierarchyException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class MediaContentSharerTest {
 

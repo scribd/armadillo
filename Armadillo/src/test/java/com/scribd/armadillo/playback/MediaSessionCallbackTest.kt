@@ -5,11 +5,6 @@ import android.os.Build.VERSION_CODES.LOLLIPOP
 import android.os.Build.VERSION_CODES.O_MR1
 import android.os.Bundle
 import android.view.KeyEvent
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.times
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.nhaarman.mockito_kotlin.whenever
 import com.scribd.armadillo.ArmadilloConfiguration
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.DaggerComponentRule
@@ -28,8 +23,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyZeroInteractions
+import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
-
 import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 
@@ -178,7 +177,7 @@ class MediaSessionCallbackTest {
 
         verify(mediaSessionCallback.playbackEngine!!).skipForward(Constants.AUDIO_SKIP_DURATION)
     }
-    
+
     @Test
     fun onSkipBack_playbackEngineShouldSkipBackward() {
         mediaSessionCallback.onSkipToPrevious()
