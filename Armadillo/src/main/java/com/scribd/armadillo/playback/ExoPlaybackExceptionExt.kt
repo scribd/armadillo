@@ -16,9 +16,9 @@ import com.scribd.armadillo.error.UnknownRendererException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-internal fun ExoPlaybackException.toArmadilloException(error: ExoPlaybackException): ArmadilloException {
+internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
     return if (TYPE_SOURCE == type) {
-        return error.sourceException.let { source ->
+        return this.sourceException.let { source ->
             when (source) {
                 is HttpDataSource.InvalidResponseCodeException ->
                     HttpResponseCodeException(source.responseCode, source.dataSpec.uri.toString(), source)
@@ -27,11 +27,11 @@ internal fun ExoPlaybackException.toArmadilloException(error: ExoPlaybackExcepti
                 is SocketTimeoutException -> HttpResponseCodeException(0, null, source)
                 is UnknownHostException ->
                     HttpResponseCodeException(0, source.message, source) // Message is supposed to be the host for UnknownHostException
-                else -> ArmadilloIOException(error)
+                else -> ArmadilloIOException(this)
             }
         }
     } else if (TYPE_RENDERER == type) {
-        return error.cause.let { source ->
+        return this.cause.let { source ->
             when (source) {
                 is AudioSink.ConfigurationException -> RendererConfigurationException(this)
                 is AudioSink.InitializationException -> RendererInitializationException(this)

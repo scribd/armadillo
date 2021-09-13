@@ -8,7 +8,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
-import com.scribd.armadillo.encryption.ExoplayerEncryption
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -38,9 +37,7 @@ class HeaderAwareDownloaderFactory @Inject constructor(private val context: Cont
     override fun createDownloader(request: DownloadRequest): Downloader {
         headersStore.keyForUrl(request.uri.toString())?.let { key ->
             headersStore.headersForKey(key)?.forEach {
-                httpDataSourceFactory.defaultRequestProperties.set(
-                    it.key, it.value
-                )
+                httpDataSourceFactory.setDefaultRequestProperties(mapOf(it.key to it.value))
             }
         }
 

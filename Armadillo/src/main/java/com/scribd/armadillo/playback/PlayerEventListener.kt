@@ -3,6 +3,7 @@ package com.scribd.armadillo.playback
 import android.util.Log
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.Action
@@ -21,7 +22,7 @@ import javax.inject.Inject
  *
  * It communicates changes by sending [Action]s with [StateStore.Modifier].
  */
-internal class PlayerEventListener : Player.EventListener {
+internal class PlayerEventListener : Player.Listener {
     init {
         Injector.mainComponent.inject(this)
     }
@@ -33,8 +34,8 @@ internal class PlayerEventListener : Player.EventListener {
     @Inject
     internal lateinit var stateModifier: StateStore.Modifier
 
-    override fun onPlayerError(error: ExoPlaybackException) {
-        val exception = error.toArmadilloException(error)
+    override fun onPlayerError(error: PlaybackException) {
+        val exception = (error as ExoPlaybackException).toArmadilloException()
         stateModifier.dispatch(ErrorAction(exception))
         Log.e(TAG, "onPlayerError: $error")
     }
