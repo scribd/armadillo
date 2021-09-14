@@ -57,6 +57,6 @@ internal fun createRenderersFactory(context: Context): RenderersFactory =
             DefaultAudioProcessorChain(),
             false,
             true,
-            false)
+            DefaultAudioSink.OFFLOAD_MODE_DISABLED)
         arrayOf(MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, eventHandler, audioRendererEventListener, audioSink))
     }
