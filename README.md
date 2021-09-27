@@ -1,4 +1,4 @@
-![](armadillo.png)
+![](armadillo.webp)
 
 Welcome to Project Armadillo, a delightful audio player for Android.
 
