@@ -1,4 +1,4 @@
-![](armadillo.png)
+![](armadillo.webp)
 
 Welcome to Project Armadillo, a delightful audio player for Android.
 
@@ -92,5 +92,3 @@ See the guide [here](https://github.com/scribd/armadillo/blob/main/CONTRIBUTING.
 ## Architecture Explained
 
 ![armadillo](armadillo_arch.png "Armadillo Architecture")
-
-<sub><sup>Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](http://www.flaticon.com/) <sub><sup>
