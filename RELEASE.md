@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.0.3
+- Upgrade exoplayer version to 2.15.1
+
 ## 1.0.2
 - Upgrade exoplayer version to 2.15.0
 
