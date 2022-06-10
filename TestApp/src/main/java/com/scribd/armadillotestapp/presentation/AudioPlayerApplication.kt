@@ -19,7 +19,6 @@ import com.scribd.armadillotestapp.data.Content
 import com.scribd.armadillotestapp.presentation.di.AppModule
 import com.scribd.armadillotestapp.presentation.di.DaggerMainComponent
 import com.scribd.armadillotestapp.presentation.di.MainComponent
-import com.squareup.leakcanary.LeakCanary
 import javax.inject.Inject
 
 class AudioPlayerApplication : Application() {
@@ -34,10 +33,6 @@ class AudioPlayerApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            return
-        }
-        LeakCanary.install(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createDownloadNotificationChannel()

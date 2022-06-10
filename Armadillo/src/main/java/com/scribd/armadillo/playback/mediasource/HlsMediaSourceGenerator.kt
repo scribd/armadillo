@@ -9,7 +9,6 @@ import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import com.scribd.armadillo.download.CacheManager
@@ -38,20 +37,17 @@ internal class HlsMediaSourceGenerator @Inject constructor(
     }
 
     private fun buildDataSourceFactory(context: Context, request: AudioPlayable.MediaRequest): DataSource.Factory {
-        val httpDataSourceFactory = DefaultHttpDataSourceFactory(
-            Constants.getUserAgent(context),
-            DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
-            DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
-            true //allow redirects
-        )
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent(Constants.getUserAgent(context))
+            .setConnectTimeoutMs(DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS)
+            .setReadTimeoutMs(DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS)
+            .setAllowCrossProtocolRedirects(true)
 
         if (request.headers.isNotEmpty()) {
             headersStore.keyForUrl(request.url)?.let {
                 headersStore.setHeaders(it, request.headers)
             }
-            request.headers.forEach() { entry ->
-                httpDataSourceFactory.defaultRequestProperties.set(entry.key, entry.value)
-            }
+            httpDataSourceFactory.setDefaultRequestProperties(request.headers)
         }
 
         val upstreamFactory = DefaultDataSourceFactory(context, httpDataSourceFactory)

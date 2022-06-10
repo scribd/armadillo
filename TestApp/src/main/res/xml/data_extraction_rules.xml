@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <device-transfer>
+        <exclude domain="external" path="exoplayer/"/>
+    </device-transfer>
+    <cloud-backup>
+        <exclude domain="external" path="exoplayer/"/>
+    </cloud-backup>
+</data-extraction-rules>

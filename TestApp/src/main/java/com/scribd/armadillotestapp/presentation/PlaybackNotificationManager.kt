@@ -9,6 +9,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
+import com.scribd.armadillo.hasSnowCone
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.playback.PlaybackNotificationBuilder
 import com.scribd.armadillotestapp.R
@@ -66,7 +67,8 @@ class PlaybackNotificationManager(private val context: Context) : PlaybackNotifi
     private fun buildContentIntent(audioPlayable: AudioPlayable): PendingIntent {
         val i = Intent(context, AudioPlayerActivity::class.java)
         i.putExtra(MainActivity.AUDIOBOOK_EXTRA, audioPlayable)
-        return PendingIntent.getActivity(context, 711, i, PendingIntent.FLAG_UPDATE_CURRENT)
+        val flag = if (hasSnowCone()) PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
+        return PendingIntent.getActivity(context, 711, i, flag)
     }
 
     private fun buildAction(icon: Int, stringRes: Int, action: Long): NotificationCompat.Action {
