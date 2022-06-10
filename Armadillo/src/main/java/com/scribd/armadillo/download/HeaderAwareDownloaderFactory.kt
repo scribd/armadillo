@@ -4,8 +4,8 @@ import android.content.Context
 import com.google.android.exoplayer2.offline.DefaultDownloaderFactory
 import com.google.android.exoplayer2.offline.DownloadRequest
 import com.google.android.exoplayer2.offline.Downloader
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import java.util.concurrent.ExecutorService
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class HeaderAwareDownloaderFactory @Inject constructor(private val context: Context,
                                                        private val headersStore: HeadersStore,
                                                        private val cacheManager: CacheManager,
-                                                       private val httpDataSourceFactory: DefaultHttpDataSourceFactory) :
+                                                       private val httpDataSourceFactory: DefaultHttpDataSource.Factory) :
     DefaultDownloaderFactory(
         // Create a minimal factory. We'll create a new one on the fly later to actually create the downloader
         cacheManager.downloadDataSourceFactory(context, httpDataSourceFactory),
@@ -41,7 +41,7 @@ class HeaderAwareDownloaderFactory @Inject constructor(private val context: Cont
             }
         }
 
-        val defaultDataSourceFactory = DefaultDataSourceFactory(context, httpDataSourceFactory)
+        val defaultDataSourceFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
 
         val defaultDownloaderFactory = DefaultDownloaderFactory(
             cacheManager.downloadDataSourceFactory(context, defaultDataSourceFactory),

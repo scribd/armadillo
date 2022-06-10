@@ -5,7 +5,6 @@ import com.google.android.exoplayer2.offline.DownloadManager
 import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.offline.DownloaderFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
@@ -71,12 +70,11 @@ internal class DownloadModule {
 
     @Singleton
     @Provides
-    fun httpDataSourceFactory(context: Context): DefaultHttpDataSourceFactory = DefaultHttpDataSourceFactory(
-        Constants.getUserAgent(context),
-        DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
-        true //allow redirects
-    )
+    fun httpDataSourceFactory(context: Context): DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory()
+        .setUserAgent(Constants.getUserAgent(context))
+        .setConnectTimeoutMs(DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS)
+        .setReadTimeoutMs(DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS)
+        .setAllowCrossProtocolRedirects(true)
 
     @Singleton
     @Provides

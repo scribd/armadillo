@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import com.scribd.armadillo.hasSnowCone
 
 /**
  * Wraps a Broadcast Receiver to allow a Listener to know when a given Notification has been deleted.
@@ -51,7 +52,8 @@ internal class ArmadilloNotificationDeleteReceiver(val application: Application)
      */
     override fun setDeleteIntentOnNotification(notification: Notification) {
         val intent = Intent(ArmadilloNotificationDeleteReceiver.ACTION)
-        val pendingIntent = PendingIntent.getBroadcast(application, 0, intent, 0)
+        val intentFlag = if (hasSnowCone()) PendingIntent.FLAG_MUTABLE else 0
+        val pendingIntent = PendingIntent.getBroadcast(application, 0, intent, intentFlag)
         notification.deleteIntent = pendingIntent
     }
 

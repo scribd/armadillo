@@ -7,8 +7,9 @@ import com.google.android.exoplayer2.offline.DownloadHelper
 import com.google.android.exoplayer2.offline.DownloadManager
 import com.google.android.exoplayer2.offline.DownloadRequest
 import com.google.android.exoplayer2.offline.DownloadService
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
@@ -71,22 +72,20 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
     private fun downloadHelper(context: Context, mediaRequest: AudioPlayable.MediaRequest): DownloadHelper {
         val uri = mediaRequest.url.toUri()
         val renderersFactory = createRenderersFactory(context)
-        val dataSourceFactory = DefaultHttpDataSourceFactory(Constants.getUserAgent(context))
+        val dataSourceFactory = DefaultHttpDataSource.Factory().setUserAgent(Constants.getUserAgent(context))
 
         if (mediaRequest.headers.isNotEmpty()) {
             downloadHeadersStore.keyForUrl(mediaRequest.url)?.let {
                 downloadHeadersStore.setHeaders(it, mediaRequest.headers)
             }
-            mediaRequest.headers.forEach {
-                dataSourceFactory.defaultRequestProperties.set(it.key, it.value)
-            }
+            dataSourceFactory.setDefaultRequestProperties(mediaRequest.headers)
         }
         val mediaItem = MediaItem.Builder()
             .setUri(uri)
             .build()
         return when (@C.ContentType val type = Util.inferContentType(uri)) {
             C.TYPE_HLS ->
-                DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSourceFactory(context, dataSourceFactory))
+                DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory()))
             C.TYPE_OTHER -> DownloadHelper.forMediaItem(context, mediaItem)
             else -> throw IllegalStateException("Unsupported type: $type")
         }

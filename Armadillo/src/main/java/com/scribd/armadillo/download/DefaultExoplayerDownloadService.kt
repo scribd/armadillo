@@ -17,7 +17,7 @@ import javax.inject.Inject
  * need more control over the downloads or notifications, you should provide your own implementation class to the download configuration.
  */
 internal class DefaultExoplayerDownloadService : DownloadService(FOREGROUND_NOTIFICATION_ID,
-        DEFAULT_FOREGROUND_NOTIFICATION_UPDATE_INTERVAL, CHANNEL_ID, CHANNEL_NAME, 0) {
+    DEFAULT_FOREGROUND_NOTIFICATION_UPDATE_INTERVAL, CHANNEL_ID, CHANNEL_NAME, 0) {
 
     init {
         Injector.mainComponent.inject(this)
@@ -36,17 +36,17 @@ internal class DefaultExoplayerDownloadService : DownloadService(FOREGROUND_NOTI
 
     override fun getDownloadManager(): DownloadManager = downloadManager
 
-    override fun getForegroundNotification(downloads: MutableList<Download>): Notification {
+    override fun getScheduler(): Scheduler? = if (Util.SDK_INT >= 21) PlatformScheduler(this, JOB_ID) else null
+
+    override fun getForegroundNotification(downloads: MutableList<Download>, notMetRequirements: Int): Notification {
         return getNotificationFactory().getForegroundNotification(this, downloads.mapNotNull { TestableDownloadState(it).toDownloadInfo() }.filter {
             it.downloadState != DownloadState.REMOVED
         }.toTypedArray())
     }
 
-    override fun getScheduler(): Scheduler? = if (Util.SDK_INT >= 21) PlatformScheduler(this, JOB_ID) else null
-
     // TODO: [AND-10580] expecting data to stay here is unreliable. Need a default in case the object does not exist
     private fun getNotificationFactory(): DownloadNotificationFactory = DownloadNotificationHolder.downloadNotificationFactory
-            ?: DefaultDownloadNotificationFactory()
+        ?: DefaultDownloadNotificationFactory()
 
     //TODO: Notification for finished / cancelled. Override onTaskStateChanged
 }

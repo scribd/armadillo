@@ -17,20 +17,21 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 32
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 32
         versionCode 1
         versionName project.LIBRARY_VERSION
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'proguard-rules.pro'
+        buildConfigField("String", "VERSION_NAME", "\"${project.LIBRARY_VERSION}\"")
     }
 
     buildTypes {
@@ -56,7 +57,7 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxandroid:${RXANDROID_VERSION}"
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
     kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
-    implementation 'androidx.media:media:1.0.0'
+    implementation 'androidx.media:media:1.6.0'
     testImplementation "org.robolectric:robolectric:4.5.1"
     testImplementation 'junit:junit:4.12'
     testImplementation("org.assertj:assertj-core:3.10.0")

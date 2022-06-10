@@ -1,6 +1,7 @@
 package com.scribd.armadillo
 
 import android.content.Context
+import android.os.Build
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.time.Interval
 import com.scribd.armadillo.time.Millisecond
@@ -44,3 +45,5 @@ fun sanitizeChapters(chapters: List<Chapter>): List<Chapter> {
         }
     }
 }
+
+fun hasSnowCone() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
