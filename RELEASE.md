@@ -1,6 +1,6 @@
 # Project Armadillo Release Notes
 
-## 1.0.4-SNAPSHOT
+## 1.0.4
 - Upgraded Exoplayer version to 2.17.1
 - Upgraded Java version to 11
 - Upgraded Androidx Media version to 1.6.0
