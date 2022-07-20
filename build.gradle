@@ -3,6 +3,7 @@
 buildscript {
     ext.githubUsername = "$System.env.GITHUB_USERNAME"
     ext.githubPassword = "$System.env.GITHUB_PASSWORD"
+    ext.githubRepo = "$System.env.GITHUB_REPOSITORY"
 
     ext.kotlin_version = '1.6.0'
 
