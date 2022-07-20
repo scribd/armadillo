@@ -1,20 +1,18 @@
 buildscript {
     apply from: "$project.rootDir/gradle/shared.gradle"
-
-    dependencies {
-        classpath "digital.wup:android-maven-publish:${MAVEN_PUBLISH_VERSION}"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${DOKKA_VERSION}"
-    }
 }
 
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'maven-publish'
     // Extension of maven plugin that properly handles android dependencies
-    id 'digital.wup.android-maven-publish' version "${MAVEN_PUBLISH_VERSION}"
     id 'org.jetbrains.dokka' version "${DOKKA_VERSION}" // Official Kotlin documentation engine - does both Kotlin and Java docs
 }
+
+apply plugin: 'org.jetbrains.dokka'
+
 
 android {
     compileSdkVersion 32
@@ -28,10 +26,9 @@ android {
         minSdkVersion 21
         targetSdkVersion 32
         versionCode 1
-        versionName project.LIBRARY_VERSION
+        buildConfigField "String", "VERSION_NAME", "\"$project.LIBRARY_VERSION\""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'proguard-rules.pro'
-        buildConfigField("String", "VERSION_NAME", "\"${project.LIBRARY_VERSION}\"")
     }
 
     buildTypes {
@@ -57,7 +54,7 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxandroid:${RXANDROID_VERSION}"
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
     kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
-    implementation 'androidx.media:media:1.6.0'
+    implementation 'androidx.media:media:1.0.0'
     testImplementation "org.robolectric:robolectric:4.5.1"
     testImplementation 'junit:junit:4.12'
     testImplementation("org.assertj:assertj-core:3.10.0")
@@ -79,24 +76,7 @@ task androidJavadocsJar(type: Jar, dependsOn: dokkaJavadoc) {
     from dokkaJavadoc.outputDirectory
 }
 
-// Configure AAR to publish
 publishing {
-
-    publications {
-        android.libraryVariants.all { variant ->
-            "${variant.name.capitalize()}Aar"(MavenPublication) {
-                groupId project.PACKAGE_NAME
-                version project.LIBRARY_VERSION
-                artifactId project.getName().toLowerCase()
-                from components.findByName("android${variant.name.capitalize()}")
-                // Add sources to artifact
-                artifact androidSourcesJar
-                // Add javadocs
-                artifact androidJavadocsJar
-            }
-        }
-    }
-
     repositories {
         maven {
             name = "GitHubPackages"
@@ -105,6 +85,19 @@ publishing {
                 username = "$githubUsername"
                 password = "$githubPassword"
             }
+        }
+    }
+}
+
+afterEvaluate {
+    android.libraryVariants.each { variant ->
+        publishing.publications.create("${variant.name.capitalize()}Aar", MavenPublication) {
+            from components.findByName(variant.name.capitalize())
+            groupId project.PACKAGE_NAME
+            artifactId project.getName().toLowerCase()
+            version project.LIBRARY_VERSION
+            artifact androidSourcesJar
+            artifact androidJavadocsJar
         }
     }
 }

@@ -1,11 +1,13 @@
 project.buildscript {
     repositories {
         jcenter()
-        google() 
+        google()
+        mavenCentral()
     }
 }
 
 project.repositories {
     jcenter()
-    google()  
+    google()
+    mavenCentral()
 }
