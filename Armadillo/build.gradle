@@ -88,7 +88,7 @@ publishing {
                 groupId project.PACKAGE_NAME
                 version project.LIBRARY_VERSION
                 artifactId project.getName().toLowerCase()
-                from components.findByName("android${variant.name.capitalize()}")
+                from components.findByName(variant.name.capitalize())
                 // Add sources to artifact
                 artifact androidSourcesJar
                 // Add javadocs
