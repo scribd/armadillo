@@ -85,7 +85,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
             .build()
         return when (@C.ContentType val type = Util.inferContentType(uri)) {
             C.TYPE_HLS ->
-                DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory()))
+                DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, dataSourceFactory))
             C.TYPE_OTHER -> DownloadHelper.forMediaItem(context, mediaItem)
             else -> throw IllegalStateException("Unsupported type: $type")
         }
