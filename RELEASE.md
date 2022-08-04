@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.0.5
+- Fixed issue with headers not properly being applied to Api Requests
+
 ## 1.0.4
 - Upgraded Exoplayer version to 2.17.1
 - Upgraded Java version to 11
