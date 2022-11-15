@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.0.6
+- Fixed issue with ArmadilloState events not being emitted on Android 12+
+
 ## 1.0.5
 - Fixed issue with headers not properly being applied to Api Requests
 
