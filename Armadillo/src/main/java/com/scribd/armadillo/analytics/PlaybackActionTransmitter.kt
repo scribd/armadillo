@@ -1,5 +1,7 @@
 package com.scribd.armadillo.analytics
 
+import android.app.ForegroundServiceStartNotAllowedException
+import android.os.Build
 import androidx.annotation.VisibleForTesting
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Milliseconds
@@ -52,8 +54,20 @@ internal class PlaybackActionTransmitterImpl(private val stateProvider: StateSto
         disposables.add(stateProvider.stateSubject
             .retry()
             .subscribe({ armadilloState ->
-                currentState = armadilloState
-                lastState = checkForStateChanges(armadilloState)
+                try {
+                    currentState = armadilloState
+                    lastState = checkForStateChanges(armadilloState)
+                } catch (e: Throwable) {
+                    // Don't throw exception if user SDK >= android 12 and it's ForegroundServiceStartNotAllowedException
+                    // Exceptions kill emissions, but the player still works even after ForegroundServiceStartNotAllowedException
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        if (e !is ForegroundServiceStartNotAllowedException) {
+                            throw e
+                        }
+                    } else {
+                        throw e
+                    }
+                }
             }, { throwable ->
                 (throwable as? Exception)?.let {
                     actionListeners.dispatch { listener, state -> listener.onError(ActionListenerException(it), state) }
