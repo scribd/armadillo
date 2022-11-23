@@ -8,6 +8,7 @@ import com.scribd.armadillo.Milliseconds
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.di.Injector
 import com.scribd.armadillo.error.ActionListenerException
+import com.scribd.armadillo.hasSnowCone
 import com.scribd.armadillo.models.ArmadilloState
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.InternalState
@@ -60,10 +61,8 @@ internal class PlaybackActionTransmitterImpl(private val stateProvider: StateSto
                 } catch (e: Throwable) {
                     // Don't throw exception if user SDK >= android 12 and it's ForegroundServiceStartNotAllowedException
                     // Exceptions kill emissions, but the player still works even after ForegroundServiceStartNotAllowedException
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        if (e !is ForegroundServiceStartNotAllowedException) {
+                        if (hasSnowCone() && e !is ForegroundServiceStartNotAllowedException) {
                             throw e
-                        }
                     } else {
                         throw e
                     }
