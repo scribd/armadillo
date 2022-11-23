@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.0.7
+- Added error state support for ForegroundServiceStartNotAllowedException
+
 ## 1.0.6
 - Fixed issue with ArmadilloState events not being emitted on Android 12+
 
