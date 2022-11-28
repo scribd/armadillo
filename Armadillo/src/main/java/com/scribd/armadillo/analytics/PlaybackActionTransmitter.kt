@@ -61,8 +61,10 @@ internal class PlaybackActionTransmitterImpl(private val stateProvider: StateSto
                 } catch (e: Throwable) {
                     // Don't throw exception if user SDK >= android 12 and it's ForegroundServiceStartNotAllowedException
                     // Exceptions kill emissions, but the player still works even after ForegroundServiceStartNotAllowedException
-                        if (hasSnowCone() && e !is ForegroundServiceStartNotAllowedException) {
+                    if (hasSnowCone()) {
+                        if (e !is ForegroundServiceStartNotAllowedException) {
                             throw e
+                        }
                     } else {
                         throw e
                     }
