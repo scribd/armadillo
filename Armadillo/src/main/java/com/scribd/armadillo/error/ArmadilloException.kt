@@ -80,6 +80,16 @@ object UnableToLoadDownloadInfo : ArmadilloException(Exception()) {
 }
 
 /**
+ * Occurs when a device supporting Android 12 (SDK 31+) attempts to launch the ExoPlayer DownloadService while the user has put the app
+ * into the background, often during low connectivity when the DownloadHelper.prepare() stalls long enough for the user to put the app in
+ * the background before DownloadService.sendAddDownload
+ */
+
+data class DownloadServiceLaunchedInBackground(val id: Int) : ArmadilloException(Exception()) {
+    override val errorCode = 304
+}
+
+/**
  * Misc Errors
  */
 data class UnexpectedException(val exception: Exception) : ArmadilloException(exception) {

@@ -1,5 +1,6 @@
 package com.scribd.armadillo.download
 
+import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
@@ -15,8 +16,10 @@ import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
+import com.scribd.armadillo.error.DownloadServiceLaunchedInBackground
 import com.scribd.armadillo.extensions.encodeInByteArray
 import com.scribd.armadillo.extensions.toUri
+import com.scribd.armadillo.hasSnowCone
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.playback.createRenderersFactory
 import java.io.IOException
@@ -51,7 +54,15 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
         downloadHelper.prepare(object : DownloadHelper.Callback {
             override fun onPrepared(helper: DownloadHelper) {
                 val request = helper.getDownloadRequest(audiobook.id.encodeInByteArray())
-                startDownload(context, request)
+                try {
+                    startDownload(context, request)
+                } catch (e: Exception) {
+                    if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
+                        stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audiobook.id)))
+                    } else {
+                        stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
+                    }
+                }
             }
 
             override fun onPrepareError(helper: DownloadHelper, e: IOException) =
