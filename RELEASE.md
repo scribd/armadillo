@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.0.8
+- Download removal is now handled by DownloadManager rather than DownloadService
+
 ## 1.0.7
 - Added error state support for ForegroundServiceStartNotAllowedException
 

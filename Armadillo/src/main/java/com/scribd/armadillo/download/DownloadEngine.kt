@@ -70,8 +70,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
         })
     }
 
-    override fun removeDownload(audiobook: AudioPlayable) =
-        DownloadService.sendRemoveDownload(context, downloadService, audiobook.request.url, true)
+    override fun removeDownload(audiobook: AudioPlayable) = downloadManager.removeDownload(audiobook.request.url)
 
     override fun removeAllDownloads() = downloadManager.removeAllDownloads()
 
