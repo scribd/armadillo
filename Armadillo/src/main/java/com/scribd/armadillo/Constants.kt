@@ -56,12 +56,14 @@ object Constants {
         const val SET_PLAYBACK_SPEED = "set_playback_speed_action"
         const val UPDATE_PROGRESS = "updated_progress_action"
         const val UPDATE_METADATA = "update_metadata"
+        const val UPDATE_MEDIA_REQUEST = "update_media_request"
 
         object Extras {
             const val IS_IN_FOREGROUND = "is_in_foreground"
             const val PLAYBACK_SPEED = "playback_speed"
             const val METADATA_TITLE = "metadata_title"
             const val METADATA_CHAPTERS = "metadata_chapters"
+            const val MEDIA_REQUEST = "media_request"
         }
     }
 }

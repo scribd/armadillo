@@ -18,7 +18,7 @@ interface MediaSourceRetriever {
     fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest)
 }
 
-class MediaSourceRetrieverImpl : MediaSourceRetriever {
+class MediaSourceRetrieverImpl @Inject constructor(): MediaSourceRetriever {
     @Inject
     internal lateinit var hlsGenerator: HlsMediaSourceGenerator
 

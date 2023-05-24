@@ -117,8 +117,8 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
         when (playbackInfo?.playbackState) {
             PlaybackState.PLAYING -> onPause()
             PlaybackState.PAUSED -> onPlay()
-            PlaybackState.NONE -> { /* do nothing */
-            }
+            PlaybackState.NONE -> Unit
+            null -> Unit
         }
     }
 
@@ -203,6 +203,10 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
             is CustomAction.UpdatePlaybackMetadata -> {
                 playbackEngine?.updateMetadata(customAction.title, customAction.chapters)
             }
+            is CustomAction.UpdateMediaRequest -> {
+                playbackEngine?.updateMediaRequest(customAction.mediaRequest)
+            }
+            null -> Log.e(TAG, "Custom action is null from $action with $extras")
         }
     }
 
