@@ -14,6 +14,8 @@ import javax.inject.Inject
 interface MediaSourceRetriever {
     fun generateMediaSource(request: AudioPlayable.MediaRequest,
                             context: Context): MediaSource
+
+    fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest)
 }
 
 class MediaSourceRetrieverImpl : MediaSourceRetriever {
@@ -31,6 +33,10 @@ class MediaSourceRetrieverImpl : MediaSourceRetriever {
                                      context: Context): MediaSource {
 
         return buildMediaGenerator(request).generateMediaSource(context, request)
+    }
+
+    override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) {
+        buildMediaGenerator(request).updateMediaSourceHeaders(request)
     }
 
     private fun buildMediaGenerator(request: AudioPlayable.MediaRequest): MediaSourceGenerator = buildMediaGenerator(request, null)
