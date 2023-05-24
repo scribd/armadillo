@@ -95,6 +95,10 @@ internal data class MetadataUpdateAction(val title: String, val chapters: List<C
     override val name: String = "MetadataUpdateAction: $title"
 }
 
+internal data class MediaRequestUpdateAction(val mediaRequest: AudioPlayable.MediaRequest): Action {
+    override val name: String = "MediaRequestUpdateAction: $mediaRequest"
+}
+
 internal object ContentEndedAction : Action {
     override val name = "ContentEndedAction"
 }

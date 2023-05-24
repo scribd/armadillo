@@ -3,6 +3,7 @@ package com.scribd.armadillo
 import com.scribd.armadillo.actions.Action
 import com.scribd.armadillo.actions.ContentEndedAction
 import com.scribd.armadillo.actions.FastForwardAction
+import com.scribd.armadillo.actions.MediaRequestUpdateAction
 import com.scribd.armadillo.actions.MetadataUpdateAction
 import com.scribd.armadillo.actions.NewAudioPlayableAction
 import com.scribd.armadillo.actions.PlaybackSpeedAction
@@ -13,15 +14,21 @@ import com.scribd.armadillo.actions.SkipDistanceAction
 import com.scribd.armadillo.actions.SkipNextAction
 import com.scribd.armadillo.actions.SkipPrevAction
 import com.scribd.armadillo.actions.UpdateDownloadAction
+import com.scribd.armadillo.error.ActionBeforeSetup
 import com.scribd.armadillo.error.IncorrectChapterMetadataException
+import com.scribd.armadillo.error.InvalidRequest
+import com.scribd.armadillo.models.ArmadilloState
+import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.models.DownloadState
+import com.scribd.armadillo.models.InternalState
 import com.scribd.armadillo.models.PlaybackProgress
 import com.scribd.armadillo.models.PlaybackState
 import com.scribd.armadillo.time.milliseconds
 import com.scribd.armadillo.time.minutes
 import com.scribd.armadillo.time.seconds
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -67,9 +74,9 @@ class ReducerTest {
             positionInDuration = 0.milliseconds,
             totalChaptersDuration = MockModels.audiobook().duration))
         assertThat(newPlaybackInfo.playbackSpeed).isEqualTo(Constants.DEFAULT_PLAYBACK_SPEED)
-        assertThat(newPlaybackInfo.isLoading).isTrue()
-        assertThat(newPlaybackInfo.controlState.isStartingNewAudioPlayable).isTrue()
-        assertThat(newPlaybackInfo.controlState.isStopping).isFalse()
+        assertThat(newPlaybackInfo.isLoading).isTrue
+        assertThat(newPlaybackInfo.controlState.isStartingNewAudioPlayable).isTrue
+        assertThat(newPlaybackInfo.controlState.isStopping).isFalse
     }
 
     @Test
@@ -173,13 +180,13 @@ class ReducerTest {
         val appState = Reducer.reduce(MockModels.appState(), MockModels.updateDownloadAction())
         val url = appState.playbackInfo!!.audioPlayable.request.url
         val downloadInfoBefore = appState.downloadInfoForUrl(url)
-        assertThat(downloadInfoBefore?.isDownloaded()).isFalse()
+        assertThat(downloadInfoBefore?.isDownloaded()).isFalse
 
         val newDownloadInfo = MockModels.downloadInfo().copy(downloadState = DownloadState.COMPLETED)
 
         val newAppState = Reducer.reduce(appState, UpdateDownloadAction(newDownloadInfo))
         val downloadInfoAfter = newAppState.downloadInfoForUrl(url)
-        assertThat(downloadInfoAfter!!.isDownloaded()).isTrue()
+        assertThat(downloadInfoAfter!!.isDownloaded()).isTrue
     }
 
     @Test
@@ -187,11 +194,11 @@ class ReducerTest {
         Reducer.reduce(MockModels.appState(), SkipPrevAction(100.milliseconds))
         val secondSeek = Reducer.reduce(MockModels.appState(), SkipNextAction(4000.milliseconds))
 
-        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter).isTrue()
-        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue()
+        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter).isTrue
+        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue
     }
 
     @Test
@@ -199,11 +206,11 @@ class ReducerTest {
         Reducer.reduce(MockModels.appState(), SkipNextAction(100.milliseconds))
         val secondSeek = Reducer.reduce(MockModels.appState(), SkipPrevAction(4000.milliseconds))
 
-        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter).isTrue()
-        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue()
+        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter).isTrue
+        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue
     }
 
     @Test
@@ -211,11 +218,11 @@ class ReducerTest {
         Reducer.reduce(MockModels.appState(), RewindAction(100.milliseconds))
         val secondSeek = Reducer.reduce(MockModels.appState(), FastForwardAction(4000.milliseconds))
 
-        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding).isTrue()
-        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue()
+        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding).isTrue
+        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue
     }
 
     @Test
@@ -223,11 +230,11 @@ class ReducerTest {
         Reducer.reduce(MockModels.appState(), FastForwardAction(100.milliseconds))
         val secondSeek = Reducer.reduce(MockModels.appState(), RewindAction(4000.milliseconds))
 
-        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding).isTrue()
-        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue()
+        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding).isTrue
+        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isTrue
     }
 
     @Test
@@ -235,11 +242,11 @@ class ReducerTest {
         Reducer.reduce(MockModels.appState(), FastForwardAction(100.milliseconds))
         val secondSeek = Reducer.reduce(MockModels.appState(), SeekAction(false, null))
 
-        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse()
-        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isFalse()
+        assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse
+        assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isFalse
     }
 
     @Test
@@ -247,8 +254,8 @@ class ReducerTest {
         Reducer.reduce(MockModels.appState(), FastForwardAction(100000.milliseconds))
         val state = Reducer.reduce(MockModels.appState(), PlayerStateAction(PlaybackState.NONE))
 
-        assertThat(state.playbackInfo?.controlState?.isStopping).isTrue()
-        assertThat(state.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse()
+        assertThat(state.playbackInfo?.controlState?.isStopping).isTrue
+        assertThat(state.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
     }
 
     @Test
@@ -315,7 +322,46 @@ class ReducerTest {
     fun reduce_contentEndedAction_updatesControlState() {
         val appState = Reducer.reduce(MockModels.appState(), ContentEndedAction)
 
-        assertThat(appState.playbackInfo!!.controlState.hasContentEnded).isTrue()
+        assertThat(appState.playbackInfo!!.controlState.hasContentEnded).isTrue
+    }
+
+    @Test
+    fun reduce_mediaRequestUpdateActionNotReady_error() {
+        val oldState = ArmadilloState(null, emptyList(), InternalState(false), null)
+        val action = MediaRequestUpdateAction(AudioPlayable.MediaRequest.createHttpUri(
+            "https://www.github.com/scribd/armadillo"
+        ))
+
+        assertThrows(ActionBeforeSetup::class.java) {
+            Reducer.reduce(oldState, action)
+        }
+    }
+
+    @Test
+    fun reduce_mediaRequestUpdateActionDifferentUrl_error() {
+        val oldState = MockModels.appState()
+        val action = MediaRequestUpdateAction(AudioPlayable.MediaRequest.createHttpUri(
+            "https://www.github.com/scribd/armadillo"
+        ))
+
+        assertThrows("MediaRequestUpdate cannot be used to change playback URL", InvalidRequest::class.java) {
+            Reducer.reduce(oldState, action)
+        }
+    }
+    @Test
+    fun reduce_mediaRequestUpdateAction_updatesRequest() {
+        val oldState = MockModels.appState()
+        val newRequest = AudioPlayable.MediaRequest.createHttpUri(
+            oldState.playbackInfo!!.audioPlayable.request.url,
+            mapOf(
+                "header1" to "value1",
+                "header2" to "value2"
+            )
+        )
+        val action = MediaRequestUpdateAction(newRequest)
+
+        val newState = Reducer.reduce(oldState, action)
+        assertThat(newState.playbackInfo!!.audioPlayable.request).isEqualTo(newRequest)
     }
 
     private fun resetMaxDurationDiscrepancy() {

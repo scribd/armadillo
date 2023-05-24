@@ -1,8 +1,10 @@
 package com.scribd.armadillo
 
 import android.support.v4.media.session.MediaControllerCompat
+import com.scribd.armadillo.actions.MediaRequestUpdateAction
 import com.scribd.armadillo.actions.MetadataUpdateAction
 import com.scribd.armadillo.models.ArmadilloState
+import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.models.InternalState
 import com.scribd.armadillo.models.PlaybackInfo
@@ -15,6 +17,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.argWhere
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -53,6 +56,45 @@ class ArmadilloPlayerChoreographerTest {
 
         choreographer.stateProvider = stateProvider
         assertThat(choreographer.armadilloStateObservable.value).isEqualTo(state)
+    }
+
+    @Test
+    fun updateMediaRequest_transmitsUpdateAction() {
+        // Set up playback state
+        val transportControls = mock<MediaControllerCompat.TransportControls>()
+        val playbackConnection = mock<MediaSessionConnection>()
+        whenever(playbackConnection.transportControls).thenReturn(transportControls)
+        choreographer.playbackConnection = playbackConnection
+
+        val playbackState = PlaybackState.PAUSED
+        val playbackInfo: PlaybackInfo = mock()
+        whenever(playbackInfo.playbackState).thenReturn(playbackState)
+
+        val stateProvider: StateStore.Provider = mock()
+        val state = ArmadilloState(
+            playbackInfo = playbackInfo,
+            internalState = InternalState(true),
+            downloadInfo = emptyList())
+        whenever(stateProvider.currentState).thenReturn(state)
+
+        val stateSubject = BehaviorSubject.create<ArmadilloState>()
+        whenever(stateProvider.stateSubject).thenReturn(stateSubject)
+        stateSubject.onNext(state)
+
+        choreographer.stateProvider = stateProvider
+
+        val newUrl = "https://www.github.com/scribd/armadillo"
+        val newHeaders = mapOf(
+            "header1" to "value1",
+            "header2" to "value2"
+        )
+        val newRequest = AudioPlayable.MediaRequest.createHttpUri(newUrl, newHeaders)
+        choreographer.updateMediaRequest(newRequest)
+
+        verify(choreographer.stateModifier).dispatch(MediaRequestUpdateAction(newRequest))
+        verify(transportControls).sendCustomAction(eq("update_media_request"), argWhere {
+            it.getSerializable("media_request") == newRequest
+        })
     }
 
     @Test

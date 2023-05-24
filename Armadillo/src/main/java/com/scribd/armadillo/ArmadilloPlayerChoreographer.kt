@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.scribd.armadillo.actions.Action
 import com.scribd.armadillo.actions.ErrorAction
+import com.scribd.armadillo.actions.MediaRequestUpdateAction
 import com.scribd.armadillo.actions.MetadataUpdateAction
 import com.scribd.armadillo.actions.SkipDistanceAction
 import com.scribd.armadillo.analytics.PlaybackActionListener
@@ -67,6 +68,14 @@ interface ArmadilloPlayer {
      * Starts playback with the given [AudioPlayable], allowing for configuration through a given [ArmadilloConfiguration]
      */
     fun beginPlayback(audioPlayable: AudioPlayable, config: ArmadilloConfiguration = ArmadilloConfiguration())
+
+    /**
+     * Provide new media request data to the currently playing content.
+     * It is an error to call this with a different URL from the currently playing media.
+     * It is also an error to call this when no content is currently loaded.
+     * If you want to start playback from a new URL, use [beginPlayback].
+     */
+    fun updateMediaRequest(mediaRequest: AudioPlayable.MediaRequest)
 
     /**
      * Update the metadata of the currently playing content
@@ -267,6 +276,13 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
                 updateProgressPollTask()
             }
         })
+    }
+
+    override fun updateMediaRequest(mediaRequest: AudioPlayable.MediaRequest) {
+        doIfPlaybackReady { controls, _ ->
+            stateModifier.dispatch(MediaRequestUpdateAction(mediaRequest))
+            controls.sendCustomAction(CustomAction.UpdateMediaRequest(mediaRequest))
+        }
     }
 
     override fun updatePlaybackMetadata(title: String, chapters: List<Chapter>) {
