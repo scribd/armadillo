@@ -7,7 +7,7 @@ import com.google.android.exoplayer2.offline.DownloadHelper
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
@@ -26,6 +26,8 @@ internal class HlsMediaSourceGenerator @Inject constructor(
     private val headersStore: HeadersStore,
     private val downloadTracker: DownloadTracker) : MediaSourceGenerator {
 
+    private val previousRequests = mutableMapOf<String, DefaultHttpDataSource.Factory>()
+
     override fun generateMediaSource(context: Context, request: AudioPlayable.MediaRequest): MediaSource {
         downloadTracker.getDownload(request.url.toUri())?.let {
             if (it.state != Download.STATE_FAILED) {
@@ -36,6 +38,18 @@ internal class HlsMediaSourceGenerator @Inject constructor(
             .createMediaSource(MediaItem.fromUri(request.url))
     }
 
+    override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) {
+        previousRequests[request.url]?.let { factory ->
+            if (request.headers.isNotEmpty()) {
+                headersStore.keyForUrl(request.url)?.let {
+                    headersStore.setHeaders(it, request.headers)
+                }
+                // Updating the factory instance updates future requests generated from this factory by ExoPlayer
+                factory.setDefaultRequestProperties(request.headers)
+            }
+        }
+    }
+
     private fun buildDataSourceFactory(context: Context, request: AudioPlayable.MediaRequest): DataSource.Factory {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
             .setUserAgent(Constants.getUserAgent(context))
@@ -43,6 +57,7 @@ internal class HlsMediaSourceGenerator @Inject constructor(
             .setReadTimeoutMs(DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS)
             .setAllowCrossProtocolRedirects(true)
 
+        previousRequests[request.url] = httpDataSourceFactory
         if (request.headers.isNotEmpty()) {
             headersStore.keyForUrl(request.url)?.let {
                 headersStore.setHeaders(it, request.headers)
@@ -50,7 +65,7 @@ internal class HlsMediaSourceGenerator @Inject constructor(
             httpDataSourceFactory.setDefaultRequestProperties(request.headers)
         }
 
-        val upstreamFactory = DefaultDataSourceFactory(context, httpDataSourceFactory)
+        val upstreamFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
         return cacheManager.playbackDataSourceFactory(context, upstreamFactory)
     }
 }

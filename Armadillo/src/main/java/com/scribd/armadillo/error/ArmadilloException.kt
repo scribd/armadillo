@@ -37,6 +37,10 @@ object InvalidPlaybackState : ArmadilloException(Exception()) {
     override val errorCode = 106
 }
 
+data class InvalidRequest(val reason: String) : ArmadilloException(exception = Exception(reason)) {
+    override val errorCode: Int = 107
+}
+
 /**
  * Playback Errors
  */

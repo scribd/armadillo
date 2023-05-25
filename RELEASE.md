@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.0.9
+- Add support for updating playback headers during playback.
+
 ## 1.0.8
 - Download removal is now handled by DownloadManager rather than DownloadService
 

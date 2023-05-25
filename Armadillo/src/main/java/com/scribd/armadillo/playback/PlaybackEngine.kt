@@ -26,7 +26,7 @@ import com.scribd.armadillo.error.MissingDataException
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.models.PlaybackState
-import com.scribd.armadillo.playback.mediasource.MediaSourceRetrieverImpl
+import com.scribd.armadillo.playback.mediasource.MediaSourceRetriever
 import com.scribd.armadillo.time.milliseconds
 import javax.inject.Inject
 import javax.inject.Named
@@ -47,6 +47,12 @@ internal interface AudioPlaybackEngine {
     var offloadAudio: Boolean
 
     fun beginPlayback(isAutoPlay: Boolean, maxDurationDiscrepancy: Int, initialOffset: Milliseconds = 0.milliseconds)
+
+    /**
+     * Updates the request for the currently playing media. This could be to change the request headers.
+     * If the URL is not for the currently playing content, this is ignored
+     */
+    fun updateMediaRequest(mediaRequest: AudioPlayable.MediaRequest)
     fun deinit()
     fun play()
     fun pause()
@@ -88,6 +94,9 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
     @Inject
     internal lateinit var exoplayerEncryption: ExoplayerEncryption
 
+    @Inject
+    internal lateinit var mediaSourceRetriever: MediaSourceRetriever
+
     @VisibleForTesting
     internal lateinit var exoPlayer: ExoPlayer
 
@@ -114,8 +123,7 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
 
         exoPlayer = createExoplayerInstance(context, audioAttributes.exoPlayerAttrs)
 
-        val mediaSource = MediaSourceRetrieverImpl()
-            .generateMediaSource(audioPlayable.request, context)
+        val mediaSource = mediaSourceRetriever.generateMediaSource(audioPlayable.request, context)
         exoPlayer.setMediaSource(mediaSource)
         exoPlayer.prepare()
 
@@ -125,6 +133,15 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
 
         stateModifier.dispatch(PlaybackEngineReady(true))
         stateModifier.dispatch(PlayerStateAction(PlaybackState.PAUSED))
+    }
+
+    override fun updateMediaRequest(mediaRequest: AudioPlayable.MediaRequest) {
+        if (mediaRequest.url == audioPlayable.request.url) {
+            audioPlayable = audioPlayable.copy(
+                request = mediaRequest
+            )
+            mediaSourceRetriever.updateMediaSourceHeaders(mediaRequest)
+        }
     }
 
     override fun deinit() {
@@ -199,7 +216,7 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
             // Audio processing effects are disabled in offloading mode, including playback speed. Cannot offload if speed != 1
             exoPlayer.experimentalSetOffloadSchedulingEnabled(false)
         }
-        exoPlayer.setPlaybackParameters(PlaybackParameters(playbackSpeed))
+        exoPlayer.playbackParameters = PlaybackParameters(playbackSpeed)
         stateModifier.dispatch(PlaybackSpeedAction(playbackSpeed))
     }
 
@@ -226,7 +243,7 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
     }
 
     private fun seekToExo(position: Milliseconds) {
-        exoPlayer.seekTo(exoPlayer.currentWindowIndex, position.longValue)
+        exoPlayer.seekTo(exoPlayer.currentMediaItemIndex, position.longValue)
         stateModifier.dispatch(PlaybackProgressAction(position, exoPlayer.playerDuration()))
     }
 }

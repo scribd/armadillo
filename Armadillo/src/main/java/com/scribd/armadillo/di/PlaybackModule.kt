@@ -15,6 +15,8 @@ import com.scribd.armadillo.playback.MediaMetadataCompatBuilderImpl
 import com.scribd.armadillo.playback.PlaybackEngineFactoryHolder
 import com.scribd.armadillo.playback.PlaybackStateBuilderImpl
 import com.scribd.armadillo.playback.PlaybackStateCompatBuilder
+import com.scribd.armadillo.playback.mediasource.MediaSourceRetriever
+import com.scribd.armadillo.playback.mediasource.MediaSourceRetrieverImpl
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -50,4 +52,8 @@ internal class PlaybackModule {
     @Provides
     @Singleton
     fun mediaBrowser(contentSharer: MediaContentSharer): ArmadilloMediaBrowse.Browser = contentSharer
+
+    @Provides
+    @Singleton
+    fun mediaSourceRetriever(mediaSourceRetrieverImpl: MediaSourceRetrieverImpl): MediaSourceRetriever = mediaSourceRetrieverImpl
 }

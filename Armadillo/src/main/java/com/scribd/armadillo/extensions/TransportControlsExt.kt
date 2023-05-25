@@ -3,6 +3,7 @@ package com.scribd.armadillo.extensions
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
 import com.scribd.armadillo.Constants
+import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
 
 internal fun MediaControllerCompat.TransportControls.sendCustomAction(customAction: CustomAction) {
@@ -32,6 +33,10 @@ internal sealed class CustomAction {
                     val chapters = bundle.getParcelableArrayList<Chapter>(Constants.Actions.Extras.METADATA_CHAPTERS)!!
                     UpdatePlaybackMetadata(title, chapters)
                 }
+                Constants.Actions.UPDATE_MEDIA_REQUEST -> {
+                    val mediaRequest = bundle?.getSerializable(Constants.Actions.Extras.MEDIA_REQUEST) as AudioPlayable.MediaRequest
+                    UpdateMediaRequest(mediaRequest)
+                }
                 else -> null
             }
         }
@@ -52,6 +57,14 @@ internal sealed class CustomAction {
         override fun toBundle(): Bundle = Bundle().apply {
             putString(Constants.Actions.Extras.METADATA_TITLE, title)
             putParcelableArrayList(Constants.Actions.Extras.METADATA_CHAPTERS, ArrayList(chapters))
+        }
+    }
+
+    data class UpdateMediaRequest(val mediaRequest: AudioPlayable.MediaRequest) : CustomAction() {
+        override val action: String = Constants.Actions.UPDATE_MEDIA_REQUEST
+
+        override fun toBundle(): Bundle = Bundle().apply{
+            putSerializable(Constants.Actions.Extras.MEDIA_REQUEST, mediaRequest)
         }
     }
 

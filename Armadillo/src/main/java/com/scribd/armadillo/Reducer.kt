@@ -9,6 +9,7 @@ import com.scribd.armadillo.actions.CustomMediaSessionAction
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.actions.FastForwardAction
 import com.scribd.armadillo.actions.LoadingAction
+import com.scribd.armadillo.actions.MediaRequestUpdateAction
 import com.scribd.armadillo.actions.MetadataUpdateAction
 import com.scribd.armadillo.actions.NewAudioPlayableAction
 import com.scribd.armadillo.actions.PlaybackEngineReady
@@ -26,6 +27,7 @@ import com.scribd.armadillo.actions.UpdateProgressAction
 import com.scribd.armadillo.error.ActionBeforeSetup
 import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.IncorrectChapterMetadataException
+import com.scribd.armadillo.error.InvalidRequest
 import com.scribd.armadillo.error.UnrecognizedAction
 import com.scribd.armadillo.extensions.filterOutCompletedItems
 import com.scribd.armadillo.extensions.removeItemsByUrl
@@ -140,6 +142,19 @@ internal object Reducer {
                         skipDistance = oldState.playbackInfo?.skipDistance ?: Constants.AUDIO_SKIP_DURATION,
                         isLoading = true))
                         .apply { debugState = newDebug }
+            }
+            is MediaRequestUpdateAction -> {
+                val playbackInfo = oldState.playbackInfo ?: throw ActionBeforeSetup(action)
+                if (playbackInfo.audioPlayable.request.url != action.mediaRequest.url) {
+                    throw InvalidRequest("MediaRequestUpdate cannot be used to change playback URL")
+                }
+                oldState.copy(
+                    playbackInfo = playbackInfo.copy(
+                        audioPlayable = playbackInfo.audioPlayable.copy(
+                            request = action.mediaRequest
+                        )
+                    )
+                ).apply { debugState = newDebug }
             }
             is MetadataUpdateAction -> {
                 oldState.copy(
