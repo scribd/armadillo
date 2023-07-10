@@ -12,6 +12,7 @@
             android:name=".playback.PlaybackService"
             android:exported="true"
             android:stopWithTask="false"
+            android:foregroundServiceType="mediaPlayback"
             tools:ignore="ExportedService">
 
             <intent-filter>
@@ -23,6 +24,7 @@
         <service
             android:name="com.google.android.exoplayer2.scheduler.PlatformScheduler$PlatformSchedulerService"
             android:exported="true"
+            android:foregroundServiceType="dataSync"
             android:permission="android.permission.BIND_JOB_SERVICE"/>
 
     </application>
