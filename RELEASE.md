@@ -1,7 +1,10 @@
 # Project Armadillo Release Notes
 
+## 1.1.0
+- Target and Compile SDK updated to 33.
+
 ## 1.0.10
-- Added foreground service type
+- Added foreground service type.
 
 ## 1.0.9
 - Add support for updating playback headers during playback.
