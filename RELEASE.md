@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.0.10
+- Added foreground service type
+
 ## 1.0.9
 - Add support for updating playback headers during playback.
 
