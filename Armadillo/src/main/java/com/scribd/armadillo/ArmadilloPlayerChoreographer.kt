@@ -326,7 +326,11 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
 
     override fun skipBackward() = doIfPlaybackReady { controls, _ -> controls.skipToPrevious() }
 
-    override fun seekTo(position: Milliseconds) = doIfPlaybackReady { controls, _ -> controls.seekTo(position.longValue) }
+    override fun seekTo(position: Milliseconds) = doIfPlaybackReady { controls, _ ->
+        // Add a shift constant to all seeks originating from the client application
+        // as opposed to system originated, such as from notification
+        controls.seekTo(position.longValue + Constants.AUDIO_POSITION_SHIFT_IN_MS)
+    }
 
     override fun seekWithinChapter(percent: Int) {
         val position = stateProvider.currentState.positionFromChapterPercent(percent)
