@@ -14,6 +14,9 @@ object Constants {
 
     internal const val MAX_PARALLEL_DOWNLOADS = 6
 
+    // an arbitrarily long constant to add to seek positions from app UI
+    internal const val AUDIO_POSITION_SHIFT_IN_MS = 5000000000L
+
     /**
      * A seek to previousChapter command beyond this will restart the current media source instead of skipping to the previousChapter media source
      */

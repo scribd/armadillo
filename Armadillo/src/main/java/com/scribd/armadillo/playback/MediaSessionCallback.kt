@@ -12,6 +12,7 @@ import android.view.KeyEvent
 import androidx.annotation.VisibleForTesting
 import com.scribd.armadillo.ArmadilloConfiguration
 import com.scribd.armadillo.Constants
+import com.scribd.armadillo.Constants.AUDIO_POSITION_SHIFT_IN_MS
 import com.scribd.armadillo.Milliseconds
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.CustomMediaSessionAction
@@ -184,8 +185,20 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
     }
 
     override fun onSeekTo(posInMilis: Long) {
-        playbackEngine?.seekTo(posInMilis.milliseconds)
-        Log.v(TAG, "onSeekTo: $posInMilis")
+        // if the shift has been added, then it must have originated from app UI, because we added it
+        val absolutePosition = if (posInMilis >= AUDIO_POSITION_SHIFT_IN_MS) {
+            posInMilis - AUDIO_POSITION_SHIFT_IN_MS // undo
+        } else {
+            // possibly from notification which sends position relative to chapter start
+            // so, add chapter start time to make it absolute position
+            val chapterStartTime = playbackInfo?.progress?.currentChapterIndex?.let { chapterIndex ->
+                playbackInfo?.audioPlayable?.chapters?.getOrNull(chapterIndex)?.startTime?.longValue
+            } ?: 0
+            posInMilis + chapterStartTime
+        }
+
+        playbackEngine?.seekTo(absolutePosition.milliseconds)
+        Log.v(TAG, "onSeekTo: received $posInMilis, absolute $absolutePosition")
     }
 
     override fun onCustomAction(action: String?, extras: Bundle?) {
