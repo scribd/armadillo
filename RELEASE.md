@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.1.1
+- Added a fix for seek from notification player
+
 ## 1.1.0
 - Target and Compile SDK updated to 33.
 
