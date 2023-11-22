@@ -52,11 +52,13 @@ internal fun createRenderersFactory(context: Context): RenderersFactory =
     RenderersFactory { eventHandler, _, audioRendererEventListener, _, _ ->
         // Default audio sink taken from DefaultRenderersFactory. We need to provide it in order to enable offloading
         // Note that we need to provide a new audio sink for each call - playback fails if we reuse the sink
-        val audioSink = DefaultAudioSink(
-            AudioCapabilities.getCapabilities(context),
-            DefaultAudioProcessorChain(),
-            false,
-            true,
-            DefaultAudioSink.OFFLOAD_MODE_DISABLED)
+        val audioSink = DefaultAudioSink.Builder(context)
+            .setAudioCapabilities(AudioCapabilities.getCapabilities(context))
+            .setAudioProcessorChain(DefaultAudioProcessorChain())
+            .setEnableFloatOutput(false)
+            .setEnableAudioTrackPlaybackParams(true)
+            .setOffloadMode(DefaultAudioSink.OFFLOAD_MODE_DISABLED)
+            .build()
+
         arrayOf(MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, eventHandler, audioRendererEventListener, audioSink))
     }
