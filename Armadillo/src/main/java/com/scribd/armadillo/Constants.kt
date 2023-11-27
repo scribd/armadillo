@@ -1,13 +1,13 @@
 package com.scribd.armadillo
 
 import android.content.Context
-import com.google.android.exoplayer2.util.Util
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import com.scribd.armadillo.time.seconds
 
 object Constants {
     const val LIBRARY_VERSION = BuildConfig.VERSION_NAME
-
-    internal const val PLAYBACK_LOADING_STATUS = "playback_loading_status"
 
     internal const val DEFAULT_PLAYBACK_SPEED = 1.0f
     internal const val DEBUG_MAX_SIZE = 20
@@ -23,6 +23,7 @@ object Constants {
     internal val MAX_POSITION_FOR_SEEK_TO_PREVIOUS = 3.seconds.inMilliseconds
     internal val AUDIO_SKIP_DURATION = 30.seconds.inMilliseconds
 
+    @OptIn(UnstableApi::class)
     internal fun getUserAgent(context: Context): String = Util.getUserAgent(context, context.getString(APP_NAME))
 
     private val APP_NAME = R.string.arm_app_name
@@ -55,14 +56,12 @@ object Constants {
     }
 
     internal object Actions {
-        const val SET_IS_IN_FOREGROUND = "set_is_in_foreground_action"
         const val SET_PLAYBACK_SPEED = "set_playback_speed_action"
         const val UPDATE_PROGRESS = "updated_progress_action"
         const val UPDATE_METADATA = "update_metadata"
         const val UPDATE_MEDIA_REQUEST = "update_media_request"
 
         object Extras {
-            const val IS_IN_FOREGROUND = "is_in_foreground"
             const val PLAYBACK_SPEED = "playback_speed"
             const val METADATA_TITLE = "metadata_title"
             const val METADATA_CHAPTERS = "metadata_chapters"

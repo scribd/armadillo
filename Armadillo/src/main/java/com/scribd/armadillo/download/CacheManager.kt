@@ -1,10 +1,12 @@
 package com.scribd.armadillo.download
 
 import android.content.Context
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.FileDataSource
-import com.google.android.exoplayer2.upstream.cache.Cache
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.FileDataSource
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheDataSource
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.encryption.ExoplayerEncryption
 import javax.inject.Inject
@@ -34,6 +36,7 @@ interface CacheManager {
     val downloadCacheSize: Long
 }
 
+@OptIn(UnstableApi::class)
 class CacheManagerImpl @Inject constructor(
     @Named(Constants.DI.PLAYBACK_CACHE) private val playbackCache: Cache,
     @Named(Constants.DI.DOWNLOAD_CACHE) private val downloadCache: Cache,

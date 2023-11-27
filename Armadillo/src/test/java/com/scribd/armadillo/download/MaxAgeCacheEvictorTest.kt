@@ -1,7 +1,7 @@
 package com.scribd.armadillo.download
 
-import com.google.android.exoplayer2.upstream.cache.Cache
-import com.google.android.exoplayer2.upstream.cache.CacheSpan
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheSpan
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test

@@ -2,9 +2,11 @@ package com.scribd.armadillo.download
 
 import android.net.Uri
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.annotation.VisibleForTesting
-import com.google.android.exoplayer2.offline.Download
-import com.google.android.exoplayer2.offline.DownloadManager
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadManager
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.ExoplayerDownload
 import com.scribd.armadillo.StateStore
@@ -22,8 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.lang.Exception
-import java.util.HashMap
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -49,6 +49,7 @@ internal interface DownloadTracker {
  * The client will be notified that a download is complete once.
  */
 @Singleton
+@OptIn(UnstableApi::class)
 internal class ExoplayerDownloadTracker @Inject constructor(
     @Named(Constants.DI.GLOBAL_SCOPE) private val globalScope: CoroutineScope,
     private val downloadManager: DownloadManager,

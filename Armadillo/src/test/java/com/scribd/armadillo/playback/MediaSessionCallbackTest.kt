@@ -211,16 +211,6 @@ class MediaSessionCallbackTest {
     }
 
     @Test
-    fun onIsInForegroundAction_updatesEngineOffloading() {
-        val isInForeground = true
-        mediaSessionCallback.onCustomAction(Constants.Actions.SET_IS_IN_FOREGROUND, Bundle().apply {
-            putBoolean(Constants.Actions.Extras.IS_IN_FOREGROUND, isInForeground)
-        })
-
-        verify(playbackEngine).offloadAudio = !isInForeground
-    }
-
-    @Test
     fun onMetadataUpdateAction_updatesMetadata() {
         val newTitle = "New Title"
         val newChapters = listOf(

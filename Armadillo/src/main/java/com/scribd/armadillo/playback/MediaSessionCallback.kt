@@ -10,6 +10,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import android.view.KeyEvent
 import androidx.annotation.VisibleForTesting
+import androidx.core.content.IntentCompat
 import com.scribd.armadillo.ArmadilloConfiguration
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Constants.AUDIO_POSITION_SHIFT_IN_MS
@@ -83,7 +84,7 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
     override fun onMediaButtonEvent(mediaButtonEvent: Intent): Boolean {
         // double-tapping play/pause buttons to skip is default behaviour for API < Oreo
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            val keyEvent = mediaButtonEvent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)!!
+            val keyEvent = IntentCompat.getParcelableExtra(mediaButtonEvent, Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)!!
 
             when (keyEvent.keyCode) {
                 KeyEvent.KEYCODE_HEADSETHOOK, // used to hang up calls
@@ -124,7 +125,7 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
     }
 
     override fun onPlayFromUri(uri: Uri, extras: Bundle) {
-        val newAudioPlayable = extras.getSerializable(Constants.Keys.KEY_AUDIO_PLAYABLE) as AudioPlayable
+        @Suppress("DEPRECATION") val newAudioPlayable = extras.getSerializable(Constants.Keys.KEY_AUDIO_PLAYABLE) as AudioPlayable
         val isAutoPlay = extras.getBoolean(Constants.Keys.KEY_IS_AUTO_PLAY, false)
         val maxDurationDiscrepancy = extras.getInt(Constants.Keys.KEY_MAX_DURATION_DISCREPANCY,
             ArmadilloConfiguration.MAX_DISCREPANCY_DEFAULT)
@@ -138,7 +139,7 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
             onStop()
         }
 
-        @Suppress("UNCHECKED_CAST") val initialOffset = extras.getSerializable(Constants.Keys.KEY_INITIAL_OFFSET) as Milliseconds
+        @Suppress("UNCHECKED_CAST", "DEPRECATION") val initialOffset = extras.getSerializable(Constants.Keys.KEY_INITIAL_OFFSET) as Milliseconds
         playbackEngine = playbackEngineFactory.createPlaybackEngine(newAudioPlayable)
         playbackEngine?.beginPlayback(isAutoPlay, maxDurationDiscrepancy, initialOffset)
         playbackEngine?.seekTo(initialOffset)
@@ -209,9 +210,6 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
             is CustomAction.SetPlaybackSpeed -> {
                 playbackEngine?.setPlaybackSpeed(customAction.playbackSpeed)
                 Log.v(TAG, "SetPlaybackSpeed")
-            }
-            is CustomAction.SetIsInForeground -> {
-                playbackEngine?.offloadAudio = !customAction.isInForeground
             }
             is CustomAction.UpdatePlaybackMetadata -> {
                 playbackEngine?.updateMetadata(customAction.title, customAction.chapters)

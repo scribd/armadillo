@@ -1,9 +1,9 @@
 package com.scribd.armadillo.playback.mediasource
 
 import android.content.Context
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.util.Util
+import androidx.media3.common.C
+import androidx.media3.common.util.Util
+import androidx.media3.exoplayer.source.MediaSource
 import com.scribd.armadillo.di.Injector
 import com.scribd.armadillo.extensions.toUri
 import com.scribd.armadillo.models.AudioPlayable
@@ -39,14 +39,12 @@ class MediaSourceRetrieverImpl @Inject constructor(): MediaSourceRetriever {
         buildMediaGenerator(request).updateMediaSourceHeaders(request)
     }
 
-    private fun buildMediaGenerator(request: AudioPlayable.MediaRequest): MediaSourceGenerator = buildMediaGenerator(request, null)
-
-    private fun buildMediaGenerator(request: AudioPlayable.MediaRequest, overrideExtension: String?): MediaSourceGenerator {
+    private fun buildMediaGenerator(request: AudioPlayable.MediaRequest): MediaSourceGenerator {
         val uri = request.url.toUri()
 
-        return when (@C.ContentType val type = Util.inferContentType(uri, overrideExtension)) {
-            C.TYPE_HLS -> hlsGenerator
-            C.TYPE_OTHER -> progressiveMediaSourceGenerator
+        return when (@C.ContentType val type = Util.inferContentType(uri)) {
+            C.CONTENT_TYPE_HLS -> hlsGenerator
+            C.CONTENT_TYPE_OTHER -> progressiveMediaSourceGenerator
             else -> throw IllegalStateException("Unsupported type: $type")
         }
     }

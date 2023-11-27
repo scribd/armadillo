@@ -1,10 +1,10 @@
 package com.scribd.armadillo.playback
 
 import android.util.Log
-import com.google.android.exoplayer2.ExoPlaybackException
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlaybackException
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.Action
 import com.scribd.armadillo.actions.ContentEndedAction
@@ -22,7 +22,7 @@ import javax.inject.Inject
  *
  * It communicates changes by sending [Action]s with [StateStore.Modifier].
  */
-internal class PlayerEventListener : Player.Listener {
+@UnstableApi internal class PlayerEventListener : Player.Listener {
     init {
         Injector.mainComponent.inject(this)
     }

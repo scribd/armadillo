@@ -1,12 +1,14 @@
 package com.scribd.armadillo.encryption
 
 import android.content.Context
-import com.google.android.exoplayer2.upstream.DataSink
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.cache.Cache
-import com.google.android.exoplayer2.upstream.cache.CacheDataSink
-import com.google.android.exoplayer2.upstream.crypto.AesCipherDataSink
-import com.google.android.exoplayer2.upstream.crypto.AesCipherDataSource
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.AesCipherDataSink
+import androidx.media3.datasource.AesCipherDataSource
+import androidx.media3.datasource.DataSink
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheDataSink
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,6 +21,7 @@ interface ExoplayerEncryption {
  * This class provides the plumbing for encrypting downloaded content & then reading this encrypted content.
  */
 @Singleton
+@OptIn(UnstableApi::class)
 internal class ExoplayerEncryptionImpl @Inject constructor(applicationContext: Context) : ExoplayerEncryption {
 
     private val secureStorage: SecureStorage = ArmadilloSecureStorage()

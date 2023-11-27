@@ -2,6 +2,7 @@ package com.scribd.armadillo.extensions
 
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
+import androidx.core.os.BundleCompat
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
@@ -24,16 +25,13 @@ internal sealed class CustomAction {
                         ?: Constants.DEFAULT_PLAYBACK_SPEED
                     SetPlaybackSpeed(playbackSpeed)
                 }
-                Constants.Actions.SET_IS_IN_FOREGROUND -> {
-                    val isInForeground = bundle?.getBoolean(Constants.Actions.Extras.IS_IN_FOREGROUND) ?: false
-                    SetIsInForeground(isInForeground)
-                }
                 Constants.Actions.UPDATE_METADATA -> {
                     val title = bundle?.getString(Constants.Actions.Extras.METADATA_TITLE)!!
-                    val chapters = bundle.getParcelableArrayList<Chapter>(Constants.Actions.Extras.METADATA_CHAPTERS)!!
+                    val chapters = BundleCompat.getParcelableArrayList(bundle, Constants.Actions.Extras.METADATA_CHAPTERS, Chapter::class.java)!!
                     UpdatePlaybackMetadata(title, chapters)
                 }
                 Constants.Actions.UPDATE_MEDIA_REQUEST -> {
+                    @Suppress("DEPRECATION")
                     val mediaRequest = bundle?.getSerializable(Constants.Actions.Extras.MEDIA_REQUEST) as AudioPlayable.MediaRequest
                     UpdateMediaRequest(mediaRequest)
                 }
@@ -66,13 +64,5 @@ internal sealed class CustomAction {
         override fun toBundle(): Bundle = Bundle().apply{
             putSerializable(Constants.Actions.Extras.MEDIA_REQUEST, mediaRequest)
         }
-    }
-
-    /**
-     * Signals to the engine that the player is visible and needs more frequent updates
-     */
-    data class SetIsInForeground(val isInForeground: Boolean) : CustomAction() {
-        override val action: String = Constants.Actions.SET_IS_IN_FOREGROUND
-        override fun toBundle(): Bundle = Bundle().apply { putBoolean(Constants.Actions.Extras.IS_IN_FOREGROUND, isInForeground) }
     }
 }

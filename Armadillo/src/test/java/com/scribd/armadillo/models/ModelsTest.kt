@@ -3,16 +3,9 @@ package com.scribd.armadillo.models
 import com.scribd.armadillo.MockModels
 import com.scribd.armadillo.time.milliseconds
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
 
 class ModelsTest {
-
-    @Rule
-    @JvmField
-    val exception: ExpectedException = ExpectedException.none()
-
     @Test
     fun findChapterAtOffset_bookHasJustBegun_returnsChapter() {
         val audiobook = MockModels.audiobook()

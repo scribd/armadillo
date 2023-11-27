@@ -1,17 +1,20 @@
 package com.scribd.armadillo.playback.mediasource
 
 import android.content.Context
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.download.CacheManager
 import com.scribd.armadillo.models.AudioPlayable
 import javax.inject.Inject
 
+@OptIn(UnstableApi::class)
 internal class ProgressiveMediaSourceGenerator @Inject constructor(
     private val cacheManager: CacheManager) : MediaSourceGenerator {
 

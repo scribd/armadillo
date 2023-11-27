@@ -1,10 +1,12 @@
 package com.scribd.armadillo.playback
 
-import com.google.android.exoplayer2.ExoPlaybackException
-import com.google.android.exoplayer2.ExoPlaybackException.TYPE_RENDERER
-import com.google.android.exoplayer2.ExoPlaybackException.TYPE_SOURCE
-import com.google.android.exoplayer2.audio.AudioSink
-import com.google.android.exoplayer2.upstream.HttpDataSource
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
+import androidx.media3.exoplayer.ExoPlaybackException
+import androidx.media3.exoplayer.ExoPlaybackException.TYPE_RENDERER
+import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
+import androidx.media3.exoplayer.audio.AudioSink
 import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.ArmadilloIOException
 import com.scribd.armadillo.error.HttpResponseCodeException
@@ -16,6 +18,7 @@ import com.scribd.armadillo.error.UnknownRendererException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
+@OptIn(UnstableApi::class)
 internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
     return if (TYPE_SOURCE == type) {
         return this.sourceException.let { source ->

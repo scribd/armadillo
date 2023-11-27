@@ -2,13 +2,16 @@ package com.scribd.armadillo
 
 import android.content.Context
 import android.os.Build
+import androidx.annotation.ChecksSdkIntAtLeast
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.time.Interval
 import com.scribd.armadillo.time.Millisecond
 import com.scribd.armadillo.time.milliseconds
 import java.io.File
+import kotlin.math.floor
+import kotlin.math.roundToInt
 
-internal typealias ExoplayerDownload = com.google.android.exoplayer2.offline.Download
+internal typealias ExoplayerDownload = androidx.media3.exoplayer.offline.Download
 internal typealias Milliseconds = Interval<Millisecond>
 
 fun exoplayerExternalDirectory(context: Context): File =
@@ -23,12 +26,12 @@ fun sanitizeChapters(chapters: List<Chapter>): List<Chapter> {
                 }
                 chapter.copy(
                         startTime = 0.milliseconds,
-                        duration = Math.round(chapter.duration.value).milliseconds)
+                        duration = chapter.duration.value.roundToInt().milliseconds)
 
             }
             chapters.size - 1 -> {
                 // Math.floor used because chapter runtime must be slightly less then audioPlayable runtime in order to detect end of book
-                val endTime = Math.floor(chapters.last().startTime.value + chapters.last().duration.value).milliseconds
+                val endTime = floor(chapters.last().startTime.value + chapters.last().duration.value).milliseconds
                 val previousChapter = chapters[i - 1]
                 val startTime = previousChapter.startTime + previousChapter.duration
                 chapter.copy(
@@ -38,12 +41,13 @@ fun sanitizeChapters(chapters: List<Chapter>): List<Chapter> {
             else -> {
                 val previousChapter = chapters[i - 1]
                 chapter.copy(
-                        startTime = Math.round(previousChapter.startTime.value + previousChapter.duration.value).milliseconds,
-                        duration = Math.round(chapter.duration.value).milliseconds)
+                        startTime = (previousChapter.startTime.value + previousChapter.duration.value).roundToInt().milliseconds,
+                        duration = chapter.duration.value.roundToInt().milliseconds)
 
             }
         }
     }
 }
 
+@ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
 fun hasSnowCone() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S

@@ -1,12 +1,13 @@
 package com.scribd.armadillo.download
 
 import android.content.Context
-import com.google.android.exoplayer2.database.DatabaseProvider
-import com.google.android.exoplayer2.offline.DefaultDownloadIndex
-import com.google.android.exoplayer2.offline.DownloadManager
-import com.google.android.exoplayer2.offline.DownloaderFactory
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.DatabaseProvider
+import androidx.media3.exoplayer.offline.DefaultDownloadIndex
+import androidx.media3.exoplayer.offline.DownloadManager
+import androidx.media3.exoplayer.offline.DownloaderFactory
 import com.scribd.armadillo.Constants
-import com.scribd.armadillo.encryption.ExoplayerEncryption
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,6 +19,7 @@ internal interface DownloadManagerFactory {
  * All instances of Armadillo must receive the same instance of [DownloadManager]. This is probably best accomplished through DI
  */
 @Singleton
+@OptIn(UnstableApi::class)
 internal class ArmadilloDownloadManagerFactory @Inject constructor(
     private val downloaderFactory: DownloaderFactory) : DownloadManagerFactory {
 

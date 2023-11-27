@@ -1,6 +1,6 @@
 package com.scribd.armadillo.models
 
-import com.google.android.exoplayer2.C
+import androidx.media3.common.C
 import com.scribd.armadillo.ArmadilloDebugView
 import com.scribd.armadillo.ArmadilloPlayer
 import com.scribd.armadillo.Constants

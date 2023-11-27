@@ -1,14 +1,16 @@
 package com.scribd.armadillo.playback.mediasource
 
 import android.content.Context
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.offline.Download
-import com.google.android.exoplayer2.offline.DownloadHelper
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadHelper
+import androidx.media3.exoplayer.source.MediaSource
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import com.scribd.armadillo.download.CacheManager
@@ -21,6 +23,7 @@ import javax.inject.Inject
  * creates an HLS media source for [ExoPlayer] from a master playlist url
  *
  */
+@OptIn(UnstableApi::class)
 internal class HlsMediaSourceGenerator @Inject constructor(
     private val cacheManager: CacheManager,
     private val headersStore: HeadersStore,

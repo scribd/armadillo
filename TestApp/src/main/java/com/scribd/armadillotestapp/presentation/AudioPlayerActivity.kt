@@ -48,6 +48,7 @@ class AudioPlayerActivity : AppCompatActivity() {
         stopPlayback = findViewById(R.id.stopPlaybackBtn)
         clearCacheButton = findViewById(R.id.clearPlaybackCacheBtn)
         removeAllDownloadsButton = findViewById(R.id.removeAllDownloadsBtn)
+        @Suppress("DEPRECATION")
         audiobook = intent.getSerializableExtra(MainActivity.AUDIOBOOK_EXTRA) as AudioPlayable
 
         val previousTrackBtn: View = findViewById(R.id.previousTrack)
@@ -73,18 +74,6 @@ class AudioPlayerActivity : AppCompatActivity() {
         removeAllDownloadsButton.setOnClickListener { armadilloPlayer.removeAllDownloads() }
 
         initArmadilloAndBeginPlayback()
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        armadilloPlayer.isInForeground = true
-    }
-
-    override fun onStop() {
-        super.onStop()
-
-        armadilloPlayer.isInForeground = false
     }
 
     override fun onDestroy() {

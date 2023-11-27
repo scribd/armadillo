@@ -93,6 +93,7 @@ class ArmadilloPlayerChoreographerTest {
 
         verify(choreographer.stateModifier).dispatch(MediaRequestUpdateAction(newRequest))
         verify(transportControls).sendCustomAction(eq("update_media_request"), argWhere {
+            @Suppress("DEPRECATION")
             it.getSerializable("media_request") == newRequest
         })
     }

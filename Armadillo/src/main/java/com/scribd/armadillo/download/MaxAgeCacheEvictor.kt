@@ -1,10 +1,12 @@
 package com.scribd.armadillo.download
 
+import androidx.annotation.OptIn
 import androidx.annotation.VisibleForTesting
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.upstream.cache.Cache
-import com.google.android.exoplayer2.upstream.cache.CacheEvictor
-import com.google.android.exoplayer2.upstream.cache.CacheSpan
+import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheEvictor
+import androidx.media3.datasource.cache.CacheSpan
 import java.util.Deque
 import java.util.LinkedList
 
@@ -14,6 +16,7 @@ import java.util.LinkedList
  *  - then function as an lru cache for valid content
  *  - if [Int.MAX_VALUE] is passed for [contentMaxAgeMillis], this cache will function as an LRU cache
  */
+@UnstableApi
 internal class MaxAgeCacheEvictor(
     private val maxBytes: Long,
     private val contentMaxAgeMillis: Int = CONTENT_MAX_AGE_MILLIS,
@@ -144,5 +147,6 @@ internal class MaxAgeCacheEvictor(
     private fun expirationTimestamp() = clock.currentTimeMillis() + contentMaxAgeMillis
 }
 
+@OptIn(UnstableApi::class)
 @VisibleForTesting
 internal fun CacheSpan.key(): Int = this.toString().hashCode()

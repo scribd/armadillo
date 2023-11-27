@@ -1,6 +1,6 @@
 package com.scribd.armadillo.download
 
-import com.google.android.exoplayer2.offline.DownloadManager
+import androidx.media3.common.util.UnstableApi
 import com.scribd.armadillo.ExoplayerDownload
 import com.scribd.armadillo.extensions.decodeToInt
 import com.scribd.armadillo.models.DownloadProgressInfo
@@ -10,6 +10,7 @@ import com.scribd.armadillo.models.DownloadState
  * [ExoplayerDownload] is not easy to test. It's a final class with private constructor. This class is a valuable intermediate
  * for being able to use this class in testing.
  */
+@UnstableApi
 internal data class TestableDownloadState(val id: Int,
                                           val url: String,
                                           val state: Int,

@@ -1,20 +1,21 @@
 package com.scribd.armadillo.di
 
 import android.content.Context
-import com.google.android.exoplayer2.offline.DownloadManager
-import com.google.android.exoplayer2.offline.DownloadService
-import com.google.android.exoplayer2.offline.DownloaderFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.cache.Cache
-import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
-import com.google.android.exoplayer2.upstream.cache.SimpleCache
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.NoOpCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.offline.DownloadManager
+import androidx.media3.exoplayer.offline.DownloadService
+import androidx.media3.exoplayer.offline.DownloaderFactory
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.download.ArmadilloDatabaseProvider
 import com.scribd.armadillo.download.ArmadilloDatabaseProviderImpl
 import com.scribd.armadillo.download.ArmadilloDownloadManagerFactory
 import com.scribd.armadillo.download.CacheManager
 import com.scribd.armadillo.download.CacheManagerImpl
-import com.scribd.armadillo.download.MaxAgeCacheEvictor
 import com.scribd.armadillo.download.DefaultExoplayerDownloadService
 import com.scribd.armadillo.download.DownloadEngine
 import com.scribd.armadillo.download.DownloadManagerFactory
@@ -22,6 +23,7 @@ import com.scribd.armadillo.download.DownloadTracker
 import com.scribd.armadillo.download.ExoplayerDownloadEngine
 import com.scribd.armadillo.download.ExoplayerDownloadTracker
 import com.scribd.armadillo.download.HeaderAwareDownloaderFactory
+import com.scribd.armadillo.download.MaxAgeCacheEvictor
 import com.scribd.armadillo.encryption.ExoplayerEncryption
 import com.scribd.armadillo.encryption.ExoplayerEncryptionImpl
 import com.scribd.armadillo.exoplayerExternalDirectory
@@ -33,6 +35,7 @@ import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
+@OptIn(UnstableApi::class)
 internal class DownloadModule {
     @Singleton
     @Provides

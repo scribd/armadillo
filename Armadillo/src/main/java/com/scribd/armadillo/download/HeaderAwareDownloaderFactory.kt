@@ -1,11 +1,13 @@
 package com.scribd.armadillo.download
 
 import android.content.Context
-import com.google.android.exoplayer2.offline.DefaultDownloaderFactory
-import com.google.android.exoplayer2.offline.DownloadRequest
-import com.google.android.exoplayer2.offline.Downloader
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.offline.DefaultDownloaderFactory
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.Downloader
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import java.util.concurrent.ExecutorService
@@ -20,6 +22,7 @@ import javax.inject.Inject
  *
  * // TODO [29]: Remove this once exoplayer is fixed
  */
+@OptIn(UnstableApi::class)
 class HeaderAwareDownloaderFactory @Inject constructor(private val context: Context,
                                                        private val headersStore: HeadersStore,
                                                        private val cacheManager: CacheManager,

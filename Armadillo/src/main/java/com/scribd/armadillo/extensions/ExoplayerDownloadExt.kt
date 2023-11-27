@@ -1,6 +1,6 @@
 package com.scribd.armadillo.extensions
 
-import com.google.android.exoplayer2.C
+import androidx.media3.common.C
 import com.scribd.armadillo.ExoplayerDownload
 
 /**

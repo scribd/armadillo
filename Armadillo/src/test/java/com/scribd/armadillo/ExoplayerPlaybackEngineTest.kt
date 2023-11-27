@@ -1,21 +1,18 @@
 package com.scribd.armadillo
 
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.PlaybackParameters
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Timeline
+import androidx.media3.common.C
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
+import androidx.media3.exoplayer.ExoPlayer
 import com.scribd.armadillo.actions.PlaybackProgressAction
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.playback.ExoplayerPlaybackEngine
 import com.scribd.armadillo.time.milliseconds
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyZeroInteractions
 import org.mockito.kotlin.whenever
@@ -151,42 +148,13 @@ class ExoplayerPlaybackEngineTest {
         playbackEngine.setPlaybackSpeed(1f)
 
         verify(exoplayer).setPlaybackParameters(PlaybackParameters(1f))
-        verify(exoplayer, never()).experimentalSetOffloadSchedulingEnabled(any())
     }
 
     @Test
     fun setPlaybackSpeed_notOne_setsSpeedAndDisablesOffloading() {
         playbackEngine.setPlaybackSpeed(2f)
 
-        verify(exoplayer).setPlaybackParameters(PlaybackParameters(2f))
-        verify(exoplayer).experimentalSetOffloadSchedulingEnabled(false)
-    }
-
-    @Test
-    fun setOffloading_playbackSpeedOne_setsOffloading() {
-        whenever(exoplayer.playbackParameters).thenReturn(PlaybackParameters(1f))
-        playbackEngine.offloadAudio = true
-
-        verify(exoplayer).experimentalSetOffloadSchedulingEnabled(true)
-        assertThat(playbackEngine.offloadAudio).isTrue()
-    }
-
-    @Test
-    fun setOffloading_playbackSpeedNotOne_doesNotSetOffloading() {
-        whenever(exoplayer.playbackParameters).thenReturn(PlaybackParameters(2f))
-        playbackEngine.offloadAudio = true
-
-        verify(exoplayer, never()).experimentalSetOffloadSchedulingEnabled(any())
-        assertThat(playbackEngine.offloadAudio).isFalse()
-    }
-
-    @Test
-    fun setOffloading_playbackSpeedNotOneDisabling_setsOffloading() {
-        whenever(exoplayer.playbackParameters).thenReturn(PlaybackParameters(2f))
-        playbackEngine.offloadAudio = false
-
-        verify(exoplayer).experimentalSetOffloadSchedulingEnabled(false)
-        assertThat(playbackEngine.offloadAudio).isFalse()
+        verify(exoplayer).playbackParameters = PlaybackParameters(2f)
     }
 
     @Test

@@ -5,7 +5,7 @@ buildscript {
     ext.githubPassword = "$System.env.GITHUB_PASSWORD"
     ext.githubRepo = "$System.env.GITHUB_REPOSITORY"
 
-    ext.kotlin_version = '1.6.0'
+    ext.kotlin_version = '1.8.0'
 
     apply from: "$project.rootDir/gradle/shared.gradle"
 

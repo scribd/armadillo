@@ -1,11 +1,13 @@
 package com.scribd.armadillo.playback
 
 import android.content.Context
+import androidx.annotation.OptIn
 import androidx.annotation.VisibleForTesting
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.PlaybackParameters
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.upstream.cache.Cache
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.exoplayer.ExoPlayer
 import com.scribd.armadillo.ArmadilloPlayerChoreographer
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Milliseconds
@@ -40,11 +42,6 @@ internal interface AudioPlaybackEngine {
      * but in one case, [PlaybackNotificationBuilder.build] requires [Chapter] info
      */
     val currentChapterIndex: Int
-
-    /**
-     * Can the engine offload audio processing. Note that this may have no effect if the engine is not able to offload.
-     */
-    var offloadAudio: Boolean
 
     fun beginPlayback(isAutoPlay: Boolean, maxDurationDiscrepancy: Int, initialOffset: Milliseconds = 0.milliseconds)
 
@@ -109,22 +106,13 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
         get() = audioPlayable.getChapterAtOffset(exoPlayer.currentPositionInDuration())
             ?: throw MissingDataException("currentChapter null")
 
-    override var offloadAudio: Boolean = false
-        set(value) {
-            // It is always valid to disable offloading. It is invalid to enable offloading if the playback speed is modified
-            if (exoPlayer.playbackParameters.speed == 1f || !value) {
-                field = value
-                exoPlayer.experimentalSetOffloadSchedulingEnabled(value)
-            }
-        }
-
-    override fun beginPlayback(isAutoPlay: Boolean, maxDurationDiscrepancy: Int, initialOffset: Milliseconds) {
+    @OptIn(UnstableApi::class) override fun beginPlayback(isAutoPlay: Boolean, maxDurationDiscrepancy: Int, initialOffset: Milliseconds) {
         stateModifier.dispatch(NewAudioPlayableAction(audioPlayable, maxDurationDiscrepancy, initialOffset))
 
         exoPlayer = createExoplayerInstance(context, audioAttributes.exoPlayerAttrs)
 
         val mediaSource = mediaSourceRetriever.generateMediaSource(audioPlayable.request, context)
-        exoPlayer.setMediaSource(mediaSource)
+        exoPlayer.setMediaSource(mediaSource, false)
         exoPlayer.prepare()
 
         exoPlayer.addListener(playerEventListener)
@@ -212,10 +200,6 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
     }
 
     override fun setPlaybackSpeed(playbackSpeed: Float) {
-        if (playbackSpeed != 1f) {
-            // Audio processing effects are disabled in offloading mode, including playback speed. Cannot offload if speed != 1
-            exoPlayer.experimentalSetOffloadSchedulingEnabled(false)
-        }
         exoPlayer.playbackParameters = PlaybackParameters(playbackSpeed)
         stateModifier.dispatch(PlaybackSpeedAction(playbackSpeed))
     }

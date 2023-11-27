@@ -2,16 +2,17 @@ package com.scribd.armadillo.download
 
 import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Context
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.offline.DownloadHelper
-import com.google.android.exoplayer2.offline.DownloadManager
-import com.google.android.exoplayer2.offline.DownloadRequest
-import com.google.android.exoplayer2.offline.DownloadService
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.util.Util
+import androidx.annotation.OptIn
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.offline.DownloadHelper
+import androidx.media3.exoplayer.offline.DownloadManager
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import com.scribd.armadillo.StateStore
@@ -40,6 +41,7 @@ internal interface DownloadEngine {
  * Starts the [DownloadService] when necessary
  */
 @Singleton
+@OptIn(UnstableApi::class)
 internal class ExoplayerDownloadEngine @Inject constructor(private val context: Context,
                                                            private val downloadHeadersStore: HeadersStore,
                                                            private val downloadService: Class<out DownloadService>,
@@ -94,9 +96,9 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
             .setUri(uri)
             .build()
         return when (@C.ContentType val type = Util.inferContentType(uri)) {
-            C.TYPE_HLS ->
+            C.CONTENT_TYPE_HLS ->
                 DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, dataSourceFactory))
-            C.TYPE_OTHER -> DownloadHelper.forMediaItem(context, mediaItem)
+            C.CONTENT_TYPE_OTHER -> DownloadHelper.forMediaItem(context, mediaItem)
             else -> throw IllegalStateException("Unsupported type: $type")
         }
     }

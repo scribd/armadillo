@@ -54,7 +54,6 @@ import javax.inject.Inject
 interface ArmadilloPlayer {
     var skipDistance: Milliseconds
     var playbackSpeed: Float
-    var isInForeground: Boolean
 
     val downloadCacheSize: Long
     val playbackCacheSize: Long
@@ -175,14 +174,6 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
             field = value
             doWhenPlaybackReady {
                 it.sendCustomAction(CustomAction.SetPlaybackSpeed(playbackSpeed))
-            }
-        }
-
-    override var isInForeground: Boolean = false
-        set(value) {
-            field = value
-            doWhenPlaybackReady {
-                it.sendCustomAction(CustomAction.SetIsInForeground(isInForeground))
             }
         }
 

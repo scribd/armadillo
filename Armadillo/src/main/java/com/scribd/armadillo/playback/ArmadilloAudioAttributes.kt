@@ -1,7 +1,7 @@
 package com.scribd.armadillo.playback
 
 import android.media.AudioAttributes
-import com.google.android.exoplayer2.C
+import androidx.media3.common.C
 
 /**
  * Creates AudioAttributes - for ExoPlayer and also for Android notifications.
@@ -12,15 +12,15 @@ import com.google.android.exoplayer2.C
  * [getAndroidAttributes] is useful for declaring attributes for notifications.
  */
 interface ArmadilloAudioAttributes {
-    val exoPlayerAttrs: com.google.android.exoplayer2.audio.AudioAttributes
+    val exoPlayerAttrs: androidx.media3.common.AudioAttributes
     fun getAndroidAttributes(): AudioAttributes
 }
 
 class AudioAttributesBuilderImpl : ArmadilloAudioAttributes {
-    override val exoPlayerAttrs: com.google.android.exoplayer2.audio.AudioAttributes
-        get() = com.google.android.exoplayer2.audio.AudioAttributes.Builder().run {
+    override val exoPlayerAttrs: androidx.media3.common.AudioAttributes
+        get() = androidx.media3.common.AudioAttributes.Builder().run {
             setUsage(C.USAGE_MEDIA)
-            setContentType(C.CONTENT_TYPE_SPEECH)
+            setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
             build()
         }
 

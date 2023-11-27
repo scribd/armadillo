@@ -6,6 +6,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
@@ -82,10 +83,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         Log.v(TAG, "onCreate")
         playbackNotificationManager = PlaybackNotificationManager(this, notificationBuilder)
         mediaSession = MediaSessionCompat(this, TAG)
-        mediaSession.setFlags(
-            MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
-                MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS or
-                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS)
 
         PlaybackActionListenerHolder.stateListener = AudioPlaybackStateListener()
 
@@ -242,14 +240,14 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
         override fun updateNotificationForPause(audiobook: AudioPlayable, currentChapterIndex: Int) {
             val token = sessionToken ?: throw MissingDataException("token should not be null")
-            stopForeground(false)
+            ServiceCompat.stopForeground(this@PlaybackService, ServiceCompat.STOP_FOREGROUND_DETACH)
             val notification = playbackNotificationManager.getNotification(audiobook, currentChapterIndex, false, token)
             notificationDeleteReceiver.setDeleteIntentOnNotification(notification)
             playbackNotificationManager.notificationManager.notify(notificationBuilder.notificationId, notification)
         }
 
         override fun removeNotification() {
-            stopForeground(true)
+            ServiceCompat.stopForeground(this@PlaybackService, ServiceCompat.STOP_FOREGROUND_REMOVE)
             isNotificationShown = false
         }
 
@@ -269,7 +267,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         if (stopPlayer) {
             mediaSession.controller.transportControls.stop()
         }
-        stopForeground(true)
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
         isInForeground = false
         isNotificationShown = false

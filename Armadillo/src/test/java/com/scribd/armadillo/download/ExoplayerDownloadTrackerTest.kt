@@ -1,7 +1,7 @@
 package com.scribd.armadillo.download
 
-import com.google.android.exoplayer2.offline.DownloadIndex
-import com.google.android.exoplayer2.offline.DownloadManager
+import androidx.media3.exoplayer.offline.DownloadIndex
+import androidx.media3.exoplayer.offline.DownloadManager
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.actions.StopTrackingDownloadAction

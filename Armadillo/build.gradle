@@ -49,15 +49,18 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
 
-    implementation "com.google.android.exoplayer:exoplayer-core:${EXOPLAYER_VERSION}"
-    implementation "com.google.android.exoplayer:exoplayer-hls:${EXOPLAYER_VERSION}"
-    implementation "com.google.android.exoplayer:extension-mediasession:${EXOPLAYER_VERSION}"
+    implementation "androidx.media3:media3-exoplayer:${EXOPLAYER_VERSION}"
+    implementation "androidx.media3:media3-exoplayer-hls:${EXOPLAYER_VERSION}"
+    implementation "androidx.media3:media3-session:${EXOPLAYER_VERSION}"
 
     implementation "io.reactivex.rxjava2:rxjava:${RXJAVA_VERSION}"
     implementation "io.reactivex.rxjava2:rxandroid:${RXANDROID_VERSION}"
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
     kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
     implementation 'androidx.media:media:1.6.0'
+
+    implementation 'androidx.core:core-ktx:1.10.1'
+
     testImplementation "org.robolectric:robolectric:4.5.1"
     testImplementation 'junit:junit:4.13.2'
     testImplementation("org.assertj:assertj-core:3.10.0")
