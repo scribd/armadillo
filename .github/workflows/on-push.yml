@@ -96,7 +96,7 @@ jobs:
       - name: Build ${{ matrix.project }} Release
         run: ./gradlew ${{ matrix.gradle-arguments }}
 
-      # Push the Library to Github packages
+      # On release/main, push build to Github packages
       - name: Publish Release
         if: matrix.project == 'Library' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
         env:
@@ -104,6 +104,15 @@ jobs:
           GITHUB_PASSWORD: ${{ github.token }}
         run: |
           ./gradlew publishReleaseAarPublicationToGitHubPackagesRepository
+
+      # On other branches, push snapshot to Github packages
+      - name: Publish Snapshot
+        if: matrix.project == 'Library' && !(github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        env:
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_PASSWORD: ${{ github.token }}
+        run: |
+          ./gradlew publishReleaseSnapshotAarPublicationToGitHubPackagesRepository
 
       # Upload the AAR file as a build artifact (accessible from the Summary page of the run)
       - name: Upload AAR file

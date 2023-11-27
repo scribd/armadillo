@@ -84,10 +84,23 @@ publishing {
 
     publications {
         android.libraryVariants.all { variant ->
-            "${variant.name.capitalize()}Aar"(MavenPublication) {
+            "${variant.name.capitalize()}Aar" (MavenPublication) {
                 from(components[variant.name])
                 groupId project.PACKAGE_NAME
                 version project.LIBRARY_VERSION
+                artifactId project.getName().toLowerCase()
+                // Add sources to artifact
+                artifact androidSourcesJar
+                // Add javadocs
+                artifact androidJavadocsJar
+            }
+        }
+
+        android.libraryVariants.all { variant ->
+            "${variant.name.capitalize()}SnapshotAar" (MavenPublication) {
+                from(components[variant.name])
+                groupId project.PACKAGE_NAME
+                version "${project.LIBRARY_VERSION}-SNAPSHOT"
                 artifactId project.getName().toLowerCase()
                 // Add sources to artifact
                 artifact androidSourcesJar
