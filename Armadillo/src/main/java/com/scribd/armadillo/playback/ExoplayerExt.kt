@@ -11,6 +11,7 @@ import com.google.android.exoplayer2.audio.DefaultAudioSink
 import com.google.android.exoplayer2.audio.DefaultAudioSink.DefaultAudioProcessorChain
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
+import com.google.android.exoplayer2.source.dash.manifest.DashManifest
 import com.google.android.exoplayer2.source.hls.HlsManifest
 import com.scribd.armadillo.Milliseconds
 import com.scribd.armadillo.time.milliseconds
@@ -20,13 +21,12 @@ import com.scribd.armadillo.time.milliseconds
  * During setup, [ExoPlayer.getCurrentManifest] will be null.
  */
 internal fun ExoPlayer.hasProgressAvailable(): Boolean {
-    return (isPlayingHls() && (currentManifest as HlsManifest).mediaPlaylist.durationUs != C.TIME_UNSET)
-        ||
-        (currentManifest == null && !currentTimeline.isEmpty)
+    return when (val m = currentManifest) {
+        is HlsManifest -> m.mediaPlaylist.durationUs != C.TIME_UNSET
+        is DashManifest -> m.durationMs != C.TIME_UNSET
+        else -> m == null && !currentTimeline.isEmpty
+    }
 }
-
-internal fun ExoPlayer.isPlayingHls(): Boolean = currentManifest is HlsManifest
-
 /**
  * Current position in relation to all audio files.
  */

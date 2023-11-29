@@ -23,6 +23,9 @@ class MediaSourceRetrieverImpl @Inject constructor(): MediaSourceRetriever {
     internal lateinit var hlsGenerator: HlsMediaSourceGenerator
 
     @Inject
+    internal lateinit var dashGenerator: DashMediaSourceGenerator
+
+    @Inject
     internal lateinit var progressiveMediaSourceGenerator: ProgressiveMediaSourceGenerator
 
     init {
@@ -46,6 +49,7 @@ class MediaSourceRetrieverImpl @Inject constructor(): MediaSourceRetriever {
 
         return when (@C.ContentType val type = Util.inferContentType(uri, overrideExtension)) {
             C.TYPE_HLS -> hlsGenerator
+            C.TYPE_DASH -> dashGenerator
             C.TYPE_OTHER -> progressiveMediaSourceGenerator
             else -> throw IllegalStateException("Unsupported type: $type")
         }
