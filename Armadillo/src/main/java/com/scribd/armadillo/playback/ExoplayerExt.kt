@@ -4,11 +4,9 @@ import android.content.Context
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.RenderersFactory
-import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.audio.AudioCapabilities
 import com.google.android.exoplayer2.audio.DefaultAudioSink
-import com.google.android.exoplayer2.audio.DefaultAudioSink.DefaultAudioProcessorChain
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.source.dash.manifest.DashManifest
@@ -27,6 +25,7 @@ internal fun ExoPlayer.hasProgressAvailable(): Boolean {
         else -> m == null && !currentTimeline.isEmpty
     }
 }
+
 /**
  * Current position in relation to all audio files.
  */
@@ -43,7 +42,7 @@ internal fun ExoPlayer.playerDuration(): Milliseconds? = if (duration == C.TIME_
  * We provide our own renderers factory so that Proguard can remove any non-audio rendering code.
  */
 internal fun createExoplayerInstance(context: Context, attributes: AudioAttributes): ExoPlayer =
-    SimpleExoPlayer.Builder(context, createRenderersFactory(context))
+    ExoPlayer.Builder(context, createRenderersFactory(context))
         .build().apply {
             setAudioAttributes(attributes, true)
         }
@@ -52,11 +51,12 @@ internal fun createRenderersFactory(context: Context): RenderersFactory =
     RenderersFactory { eventHandler, _, audioRendererEventListener, _, _ ->
         // Default audio sink taken from DefaultRenderersFactory. We need to provide it in order to enable offloading
         // Note that we need to provide a new audio sink for each call - playback fails if we reuse the sink
-        val audioSink = DefaultAudioSink(
-            AudioCapabilities.getCapabilities(context),
-            DefaultAudioProcessorChain(),
-            false,
-            true,
-            DefaultAudioSink.OFFLOAD_MODE_DISABLED)
+        val audioSink = DefaultAudioSink.Builder()
+            .setAudioCapabilities(AudioCapabilities.getCapabilities(context))
+            .setAudioProcessorChain(DefaultAudioSink.DefaultAudioProcessorChain())
+            .setEnableFloatOutput(false)
+            .setEnableAudioTrackPlaybackParams(true)
+            .setOffloadMode(DefaultAudioSink.OFFLOAD_MODE_DISABLED)
+            .build()
         arrayOf(MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, eventHandler, audioRendererEventListener, audioSink))
     }
