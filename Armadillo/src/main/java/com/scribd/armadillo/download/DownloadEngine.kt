@@ -9,7 +9,6 @@ import com.google.android.exoplayer2.offline.DownloadManager
 import com.google.android.exoplayer2.offline.DownloadRequest
 import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
 import com.scribd.armadillo.Constants
@@ -94,8 +93,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
             .setUri(uri)
             .build()
         return when (@C.ContentType val type = Util.inferContentType(uri)) {
-            C.TYPE_HLS ->
-                DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, dataSourceFactory))
+            C.TYPE_HLS,
             C.TYPE_DASH ->
                 DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, dataSourceFactory))
             C.TYPE_OTHER -> DownloadHelper.forMediaItem(context, mediaItem)
