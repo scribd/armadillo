@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.2.0
+- Adds support for MPEG-DASH audio
+
 ## 1.1.1
 - Added a fix for seek from notification player
 
