@@ -21,11 +21,11 @@ interface Content {
 }
 
 class TestContent @Inject constructor() : Content {
-    override val playables: List<AudioPlayable> = listOf(googleHostedMp3, podcastMedia, appleMasterHls)
+    override val playables: List<AudioPlayable> = listOf(googleHostedMp3, podcastMedia, appleMasterHls, dashAudio)
 
     override val mediaItems: List<MediaBrowserCompat.MediaItem>
         get() {
-            val playables = listOf(googleHostedMp3, podcastMedia, appleMasterHls)
+            val playables = listOf(googleHostedMp3, podcastMedia, appleMasterHls, dashAudio)
             val mediaItems = playables.mapIndexed { i, playable ->
                 val mediaDescription = MediaDescriptionCompat.Builder()
                     .setTitle(playable.title)
@@ -104,6 +104,46 @@ class TestContent @Inject constructor() : Content {
                     startTime = 0.milliseconds,
                     duration = 10.minutes.inMilliseconds
                 ))
+            )
+        }
+
+    private val dashAudio: AudioPlayable
+        get() {
+            val url = "https://livesim.dashif.org/dash/vod/testpic_2s/audio.mpd"
+            return AudioPlayable(
+                id = 105,
+                title = "MPEG-DASH Audio Stream",
+                request = AudioPlayable.MediaRequest.createHttpUri(url),
+                chapters = listOf(
+                    Chapter(
+                        title = "Chapter 0",
+                        part = 0,
+                        chapter = 0,
+                        startTime = 0.milliseconds,
+                        duration = 10.minutes.inMilliseconds
+                    ),
+                    Chapter(
+                        title = "Chapter 1",
+                        part = 0,
+                        chapter = 1,
+                        startTime = 10.minutes.inMilliseconds,
+                        duration = 10.minutes.inMilliseconds
+                    ),
+                    Chapter(
+                        title = "Chapter 2",
+                        part = 0,
+                        chapter = 2,
+                        startTime = 20.minutes.inMilliseconds,
+                        duration = 10.minutes.inMilliseconds
+                    ),
+                    Chapter(
+                        title = "Chapter 3",
+                        part = 0,
+                        chapter = 3,
+                        startTime = 30.minutes.inMilliseconds,
+                        duration = 30.minutes.inMilliseconds
+                    ),
+                )
             )
         }
 }
