@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.3.0
+- Adds support for DRM when playing MPEG-DASH audio
+
 ## 1.2.0
 - Adds support for MPEG-DASH audio
 

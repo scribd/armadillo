@@ -2,6 +2,7 @@ package com.scribd.armadillo.playback.mediasource
 
 import android.content.Context
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.MediaItem.DrmConfiguration
 import com.google.android.exoplayer2.offline.Download
 import com.google.android.exoplayer2.offline.DownloadHelper
 import com.google.android.exoplayer2.source.MediaSource
@@ -24,12 +25,20 @@ internal class DashMediaSourceGenerator @Inject constructor(
             }
         }
 
-        val mediaItem = MediaItem.Builder()
+        val mediaItemBuilder = MediaItem.Builder()
             .setUri(request.url)
-            .build()
+
+        if (request.drmInfo != null) {
+            mediaItemBuilder.setDrmConfiguration(
+                DrmConfiguration.Builder(request.drmInfo.drmType.toExoplayerConstant())
+                    .setLicenseUri(request.drmInfo.licenseServer)
+                    .setLicenseRequestHeaders(request.drmInfo.drmHeaders)
+                    .build()
+            )
+        }
 
         return DashMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(mediaItem)
+            .createMediaSource(mediaItemBuilder.build())
     }
 
     override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) = mediaSourceHelper.updateMediaSourceHeaders(request)
