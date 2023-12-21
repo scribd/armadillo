@@ -1,6 +1,7 @@
 package com.scribd.armadillo.playback.mediasource
 
 import android.content.Context
+import android.util.Log
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
@@ -16,7 +17,11 @@ internal class ProgressiveMediaSourceGenerator @Inject constructor(
     private val cacheManager: CacheManager) : MediaSourceGenerator {
 
     override fun generateMediaSource(context: Context, request: AudioPlayable.MediaRequest): MediaSource =
-        ProgressiveMediaSource.Factory(buildDataSourceFactory(context)).createMediaSource(MediaItem.fromUri(request.url))
+        ProgressiveMediaSource.Factory(buildDataSourceFactory(context)).createMediaSource(MediaItem.fromUri(request.url)).also {
+            if (request.drmInfo != null) {
+                Log.e(MediaSourceGenerator.TAG, "Progressive media does not currently support DRM")
+            }
+        }
 
     override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) = Unit // Doesn't use headers
 

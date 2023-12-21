@@ -1,6 +1,7 @@
 package com.scribd.armadillo.playback.mediasource
 
 import android.content.Context
+import android.util.Log
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.offline.Download
 import com.google.android.exoplayer2.offline.DownloadHelper
@@ -28,6 +29,11 @@ internal class HlsMediaSourceGenerator @Inject constructor(
                 return DownloadHelper.createMediaSource(it.request, dataSourceFactory)
             }
         }
+
+        if (request.drmInfo != null) {
+            Log.e(MediaSourceGenerator.TAG, "HLS does not currently support DRM")
+        }
+
         return HlsMediaSource.Factory(dataSourceFactory)
             .createMediaSource(MediaItem.fromUri(request.url))
     }

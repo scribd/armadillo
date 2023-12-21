@@ -2,10 +2,12 @@ package com.scribd.armadillo.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.google.android.exoplayer2.C
 import com.scribd.armadillo.Milliseconds
 import com.scribd.armadillo.extensions.toPrint
 import com.scribd.armadillo.time.milliseconds
 import java.io.Serializable
+import java.util.UUID
 
 data class AudioPlayable(val id: Int,
                          val title: String,
@@ -23,11 +25,16 @@ data class AudioPlayable(val id: Int,
         /**
          * Additional provider-specific metadata required to access the URL (e.g. HTTP authentication headers)
          */
-        val headers: Map<String, String> = emptyMap()
+        val headers: Map<String, String> = emptyMap(),
+        /**
+         * Additional information required to access a DRM server
+         */
+        val drmInfo: DrmInfo? = null
     ) : Serializable {
         companion object {
             // Just roughing in a factory pattern in case we need to generate more complex accessors in the future.
-            fun createHttpUri(url: String, headers: Map<String, String> = emptyMap()) = MediaRequest(url, headers)
+            fun createHttpUri(url: String, headers: Map<String, String> = emptyMap(), drmInfo: DrmInfo? = null) =
+                MediaRequest(url, headers, drmInfo)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -38,13 +45,14 @@ data class AudioPlayable(val id: Int,
 
             if (url != other.url) return false
             if (headers != other.headers) return false
+            if (drmInfo != other.drmInfo) return false
 
             return true
         }
 
         override fun hashCode(): Int {
             var result = url.hashCode()
-            result = 31 * result + headers.hashCode()
+            result = 31 * result + headers.hashCode() + 3 * drmInfo.hashCode()
             return result
         }
 
@@ -129,6 +137,18 @@ data class Chapter(
 
         override fun newArray(size: Int): Array<Chapter?> {
             return arrayOfNulls(size)
+        }
+    }
+}
+
+data class DrmInfo(val drmType: DrmType, val licenseServer: String, val drmHeaders: Map<String, String> = emptyMap()) : Serializable
+
+enum class DrmType {
+    WIDEVINE;
+
+    internal fun toExoplayerConstant(): UUID {
+        return when (this) {
+            WIDEVINE -> C.WIDEVINE_UUID
         }
     }
 }
