@@ -3,6 +3,7 @@ package com.scribd.armadillo.models
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.C.ContentType
 import com.scribd.armadillo.Milliseconds
 import com.scribd.armadillo.extensions.toPrint
 import com.scribd.armadillo.time.milliseconds
@@ -142,6 +143,36 @@ data class Chapter(
 }
 
 data class DrmInfo(val drmType: DrmType, val licenseServer: String, val drmHeaders: Map<String, String> = emptyMap()) : Serializable
+
+@kotlinx.serialization.Serializable
+data class DrmDownload(
+    val drmKeyId: ByteArray,
+    val drmType: DrmType,
+    val licenseServer: String,
+    @ContentType val audioType: Int,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DrmDownload
+
+        if (!drmKeyId.contentEquals(other.drmKeyId)) return false
+        if (drmType != other.drmType) return false
+        if (licenseServer != other.licenseServer) return false
+        if (audioType != other.audioType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = drmKeyId.contentHashCode()
+        result = 31 * result + drmType.hashCode()
+        result = 31 * result + licenseServer.hashCode()
+        result = 31 * result + audioType
+        return result
+    }
+}
 
 enum class DrmType {
     WIDEVINE;
