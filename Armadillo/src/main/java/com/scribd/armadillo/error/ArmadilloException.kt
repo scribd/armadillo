@@ -127,4 +127,15 @@ data class UnknownRendererException(val exception: Exception) : ArmadilloExcepti
     override val errorCode: Int = 604
 }
 
+/**
+ * DRM errors
+ */
+
+data class DrmContentTypeUnsupportedException(val contentType: Int) : ArmadilloException(exception = Exception()) {
+    override val errorCode = 700
+}
+
+data class DrmDownloadException(val exception: Exception) : ArmadilloException(exception) {
+    override val errorCode = 701
+}
 

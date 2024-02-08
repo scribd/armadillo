@@ -15,6 +15,7 @@ import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
+import com.scribd.armadillo.download.drm.OfflineDrmManager
 import com.scribd.armadillo.error.DownloadServiceLaunchedInBackground
 import com.scribd.armadillo.extensions.encodeInByteArray
 import com.scribd.armadillo.extensions.toUri
@@ -39,15 +40,21 @@ internal interface DownloadEngine {
  * Starts the [DownloadService] when necessary
  */
 @Singleton
-internal class ExoplayerDownloadEngine @Inject constructor(private val context: Context,
-                                                           private val downloadHeadersStore: HeadersStore,
-                                                           private val downloadService: Class<out DownloadService>,
-                                                           private val downloadManager: DownloadManager,
-                                                           private val downloadTracker: DownloadTracker,
-                                                           private val stateModifier: StateStore.Modifier) : DownloadEngine {
+internal class ExoplayerDownloadEngine @Inject constructor(
+    private val context: Context,
+    private val downloadHeadersStore: HeadersStore,
+    private val downloadService: Class<out DownloadService>,
+    private val downloadManager: DownloadManager,
+    private val downloadTracker: DownloadTracker,
+    private val stateModifier: StateStore.Modifier,
+    private val offlineDrmManager: OfflineDrmManager,
+) : DownloadEngine {
     override fun init() = downloadTracker.init()
 
     override fun download(audiobook: AudioPlayable) {
+        // Download DRM license for offline use
+        offlineDrmManager.downloadDrmLicenseForOffline(audiobook)
+
         val downloadHelper = downloadHelper(context, audiobook.request)
 
         downloadHelper.prepare(object : DownloadHelper.Callback {
@@ -96,6 +103,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
             C.TYPE_HLS,
             C.TYPE_DASH ->
                 DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, dataSourceFactory))
+
             C.TYPE_OTHER -> DownloadHelper.forMediaItem(context, mediaItem)
             else -> throw IllegalStateException("Unsupported type: $type")
         }
