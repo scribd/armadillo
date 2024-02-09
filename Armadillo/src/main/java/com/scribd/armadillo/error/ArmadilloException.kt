@@ -139,3 +139,7 @@ data class DrmDownloadException(val exception: Exception) : ArmadilloException(e
     override val errorCode = 701
 }
 
+data class DrmPlaybackException(val exception: Exception) : ArmadilloException(exception) {
+    override val errorCode = 702
+}
+

@@ -15,6 +15,8 @@ import com.scribd.armadillo.playback.MediaMetadataCompatBuilderImpl
 import com.scribd.armadillo.playback.PlaybackEngineFactoryHolder
 import com.scribd.armadillo.playback.PlaybackStateBuilderImpl
 import com.scribd.armadillo.playback.PlaybackStateCompatBuilder
+import com.scribd.armadillo.playback.mediasource.DrmMediaSourceHelper
+import com.scribd.armadillo.playback.mediasource.DrmMediaSourceHelperImpl
 import com.scribd.armadillo.playback.mediasource.HeadersMediaSourceHelper
 import com.scribd.armadillo.playback.mediasource.HeadersMediaSourceHelperImpl
 import com.scribd.armadillo.playback.mediasource.MediaSourceRetriever
@@ -62,4 +64,8 @@ internal class PlaybackModule {
     @Provides
     @Singleton
     fun mediaSourceHelper(mediaSourceHelperImpl: HeadersMediaSourceHelperImpl): HeadersMediaSourceHelper = mediaSourceHelperImpl
+
+    @Provides
+    @Singleton
+    fun drmMediaSourceHelper(drmMediaSourceHelperImpl: DrmMediaSourceHelperImpl): DrmMediaSourceHelper = drmMediaSourceHelperImpl
 }
