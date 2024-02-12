@@ -12,6 +12,7 @@ import com.scribd.armadillo.models.AudioPlayable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -45,6 +46,43 @@ internal class OfflineDrmManager @Inject constructor(
                 // Persist DRM result, which includes the key ID that can be used to retrieve the offline license
                 secureStorage.saveDrmDownload(context, audiobook.request.url, drmResult)
                 Log.i(TAG, "DRM license ready for offline usage")
+            }
+        }
+    }
+
+    fun removeDownloadedDrmLicense(audiobook: AudioPlayable) {
+        globalScope.launch(Dispatchers.IO) {
+            audiobook.request.drmInfo?.let { drmInfo ->
+                secureStorage.getDrmDownload(context, audiobook.request.url, drmInfo.drmType)?.let { drmDownload ->
+                    // Remove the persisted download info immediately so audio playback would stop using the offline license
+                    secureStorage.removeDrmDownload(context, audiobook.request.url, drmInfo.drmType)
+
+                    // Release the DRM license
+                    when (val type = drmDownload.audioType) {
+                        C.TYPE_DASH -> dashDrmLicenseDownloader
+                        else -> throw DrmContentTypeUnsupportedException(type)
+                    }.releaseDrmLicense(drmDownload)
+                }
+            }
+        }
+    }
+
+    fun removeAllDownloadedDrmLicenses() {
+        globalScope.launch(Dispatchers.IO) {
+            // Make sure that a removal fails, it won't affect the removal of other licenses
+            supervisorScope {
+                secureStorage.getAllDrmDownloads(context).forEach { drmDownloadPair ->
+                    launch {
+                        // Remove the persisted download info immediately so audio playback would stop using the offline license
+                        secureStorage.removeDrmDownload(context, drmDownloadPair.key)
+
+                        // Release the DRM license
+                        when (val type = drmDownloadPair.value.audioType) {
+                            C.TYPE_DASH -> dashDrmLicenseDownloader
+                            else -> throw DrmContentTypeUnsupportedException(type)
+                        }.releaseDrmLicense(drmDownloadPair.value)
+                    }
+                }
             }
         }
     }

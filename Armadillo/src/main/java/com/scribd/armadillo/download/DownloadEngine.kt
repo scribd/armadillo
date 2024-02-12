@@ -76,9 +76,15 @@ internal class ExoplayerDownloadEngine @Inject constructor(
         })
     }
 
-    override fun removeDownload(audiobook: AudioPlayable) = downloadManager.removeDownload(audiobook.request.url)
+    override fun removeDownload(audiobook: AudioPlayable) {
+        downloadManager.removeDownload(audiobook.request.url)
+        offlineDrmManager.removeDownloadedDrmLicense(audiobook)
+    }
 
-    override fun removeAllDownloads() = downloadManager.removeAllDownloads()
+    override fun removeAllDownloads() {
+        downloadManager.removeAllDownloads()
+        offlineDrmManager.removeAllDownloadedDrmLicenses()
+    }
 
     override fun updateProgress() = downloadTracker.updateProgress()
 

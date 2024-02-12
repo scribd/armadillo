@@ -21,4 +21,9 @@ internal interface DrmLicenseDownloader {
         customRequestHeaders: Map<String, String>,
         drmInfo: DrmInfo,
     ): DrmDownload
+
+    /**
+     * Release a downloaded DRM license so it's no longer valid for usage.
+     */
+    suspend fun releaseDrmLicense(drmDownload: DrmDownload)
 }

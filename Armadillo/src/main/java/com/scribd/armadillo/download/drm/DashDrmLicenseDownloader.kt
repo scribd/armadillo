@@ -55,6 +55,18 @@ internal class DashDrmLicenseDownloader @Inject constructor(context: Context) : 
         }
     }
 
+    override suspend fun releaseDrmLicense(drmDownload: DrmDownload) {
+        val offlineHelper = when (drmDownload.drmType) {
+            DrmType.WIDEVINE -> OfflineLicenseHelper.newWidevineInstance(drmDownload.licenseServer, drmDataSourceFactory, drmEventDispatcher)
+        }
+        try {
+            offlineHelper.releaseLicense(drmDownload.drmKeyId)
+        } catch (e: Exception) {
+            Log.e(DrmLicenseDownloader.TAG, "Failure to release downloaded DRM license", e)
+            throw DrmDownloadException(e)
+        }
+    }
+
     private fun DefaultHttpDataSource.Factory.addCustomHeaders(customHeaders: Map<String, String>) {
         customHeaders.takeIf { it.isNotEmpty() }?.let { headers ->
             setDefaultRequestProperties(headers)
