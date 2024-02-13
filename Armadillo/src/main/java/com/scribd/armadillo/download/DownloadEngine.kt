@@ -22,8 +22,11 @@ import com.scribd.armadillo.extensions.toUri
 import com.scribd.armadillo.hasSnowCone
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.playback.createRenderersFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 internal interface DownloadEngine {
@@ -48,42 +51,53 @@ internal class ExoplayerDownloadEngine @Inject constructor(
     private val downloadTracker: DownloadTracker,
     private val stateModifier: StateStore.Modifier,
     private val offlineDrmManager: OfflineDrmManager,
+    @Named(Constants.DI.GLOBAL_SCOPE) private val globalScope: CoroutineScope,
 ) : DownloadEngine {
     override fun init() = downloadTracker.init()
 
     override fun download(audiobook: AudioPlayable) {
-        // Download DRM license for offline use
-        offlineDrmManager.downloadDrmLicenseForOffline(audiobook)
-
-        val downloadHelper = downloadHelper(context, audiobook.request)
-
-        downloadHelper.prepare(object : DownloadHelper.Callback {
-            override fun onPrepared(helper: DownloadHelper) {
-                val request = helper.getDownloadRequest(audiobook.id.encodeInByteArray())
-                try {
-                    startDownload(context, request)
-                } catch (e: Exception) {
-                    if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
-                        stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audiobook.id)))
-                    } else {
-                        stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
-                    }
-                }
+        globalScope.launch {
+            launch {
+                // Download DRM license for offline use
+                offlineDrmManager.downloadDrmLicenseForOffline(audiobook)
             }
 
-            override fun onPrepareError(helper: DownloadHelper, e: IOException) =
-                stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
-        })
+            launch {
+                val downloadHelper = downloadHelper(context, audiobook.request)
+
+                downloadHelper.prepare(object : DownloadHelper.Callback {
+                    override fun onPrepared(helper: DownloadHelper) {
+                        val request = helper.getDownloadRequest(audiobook.id.encodeInByteArray())
+                        try {
+                            startDownload(context, request)
+                        } catch (e: Exception) {
+                            if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
+                                stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audiobook.id)))
+                            } else {
+                                stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
+                            }
+                        }
+                    }
+
+                    override fun onPrepareError(helper: DownloadHelper, e: IOException) =
+                        stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
+                })
+            }
+        }
     }
 
     override fun removeDownload(audiobook: AudioPlayable) {
-        downloadManager.removeDownload(audiobook.request.url)
-        offlineDrmManager.removeDownloadedDrmLicense(audiobook)
+        globalScope.launch {
+            launch { downloadManager.removeDownload(audiobook.request.url) }
+            launch { offlineDrmManager.removeDownloadedDrmLicense(audiobook) }
+        }
     }
 
     override fun removeAllDownloads() {
-        downloadManager.removeAllDownloads()
-        offlineDrmManager.removeAllDownloadedDrmLicenses()
+        globalScope.launch {
+            launch { downloadManager.removeAllDownloads() }
+            launch { offlineDrmManager.removeAllDownloadedDrmLicenses() }
+        }
     }
 
     override fun updateProgress() = downloadTracker.updateProgress()
