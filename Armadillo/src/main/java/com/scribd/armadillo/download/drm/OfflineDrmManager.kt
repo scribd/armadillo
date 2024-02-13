@@ -28,31 +28,31 @@ internal class OfflineDrmManager @Inject constructor(
         private const val TAG = "OfflineDrmManager"
     }
 
-    suspend fun downloadDrmLicenseForOffline(audiobook: AudioPlayable) {
+    suspend fun downloadDrmLicenseForOffline(audioPlayable: AudioPlayable) {
         withContext(Dispatchers.IO) {
-            audiobook.request.drmInfo?.let { drmInfo ->
-                val drmResult = when (@C.ContentType val type = Util.inferContentType(audiobook.request.url.toUri(), null)) {
+            audioPlayable.request.drmInfo?.let { drmInfo ->
+                val drmResult = when (@C.ContentType val type = Util.inferContentType(audioPlayable.request.url.toUri(), null)) {
                     C.TYPE_DASH -> dashDrmLicenseDownloader
                     else -> throw DrmContentTypeUnsupportedException(type)
                 }.downloadDrmLicense(
-                    requestUrl = audiobook.request.url,
-                    customRequestHeaders = audiobook.request.headers,
+                    requestUrl = audioPlayable.request.url,
+                    customRequestHeaders = audioPlayable.request.headers,
                     drmInfo = drmInfo,
                 )
 
                 // Persist DRM result, which includes the key ID that can be used to retrieve the offline license
-                secureStorage.saveDrmDownload(context, audiobook.request.url, drmResult)
+                secureStorage.saveDrmDownload(context, audioPlayable.request.url, drmResult)
                 Log.i(TAG, "DRM license ready for offline usage")
             }
         }
     }
 
-    suspend fun removeDownloadedDrmLicense(audiobook: AudioPlayable) {
+    suspend fun removeDownloadedDrmLicense(audioPlayable: AudioPlayable) {
         withContext(Dispatchers.IO) {
-            audiobook.request.drmInfo?.let { drmInfo ->
-                secureStorage.getDrmDownload(context, audiobook.request.url, drmInfo.drmType)?.let { drmDownload ->
+            audioPlayable.request.drmInfo?.let { drmInfo ->
+                secureStorage.getDrmDownload(context, audioPlayable.request.url, drmInfo.drmType)?.let { drmDownload ->
                     // Remove the persisted download info immediately so audio playback would stop using the offline license
-                    secureStorage.removeDrmDownload(context, audiobook.request.url, drmInfo.drmType)
+                    secureStorage.removeDrmDownload(context, audioPlayable.request.url, drmInfo.drmType)
 
                     // Release the DRM license
                     when (val type = drmDownload.audioType) {

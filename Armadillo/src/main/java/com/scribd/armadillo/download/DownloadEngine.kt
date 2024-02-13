@@ -31,8 +31,8 @@ import javax.inject.Singleton
 
 internal interface DownloadEngine {
     fun init()
-    fun download(audiobook: AudioPlayable)
-    fun removeDownload(audiobook: AudioPlayable)
+    fun download(audioPlayable: AudioPlayable)
+    fun removeDownload(audioPlayable: AudioPlayable)
     fun removeAllDownloads()
     fun updateProgress()
 }
@@ -55,24 +55,24 @@ internal class ExoplayerDownloadEngine @Inject constructor(
 ) : DownloadEngine {
     override fun init() = downloadTracker.init()
 
-    override fun download(audiobook: AudioPlayable) {
+    override fun download(audioPlayable: AudioPlayable) {
         globalScope.launch {
             launch {
                 // Download DRM license for offline use
-                offlineDrmManager.downloadDrmLicenseForOffline(audiobook)
+                offlineDrmManager.downloadDrmLicenseForOffline(audioPlayable)
             }
 
             launch {
-                val downloadHelper = downloadHelper(context, audiobook.request)
+                val downloadHelper = downloadHelper(context, audioPlayable.request)
 
                 downloadHelper.prepare(object : DownloadHelper.Callback {
                     override fun onPrepared(helper: DownloadHelper) {
-                        val request = helper.getDownloadRequest(audiobook.id.encodeInByteArray())
+                        val request = helper.getDownloadRequest(audioPlayable.id.encodeInByteArray())
                         try {
                             startDownload(context, request)
                         } catch (e: Exception) {
                             if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
-                                stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audiobook.id)))
+                                stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audioPlayable.id)))
                             } else {
                                 stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
                             }
@@ -86,10 +86,10 @@ internal class ExoplayerDownloadEngine @Inject constructor(
         }
     }
 
-    override fun removeDownload(audiobook: AudioPlayable) {
+    override fun removeDownload(audioPlayable: AudioPlayable) {
         globalScope.launch {
-            launch { downloadManager.removeDownload(audiobook.request.url) }
-            launch { offlineDrmManager.removeDownloadedDrmLicense(audiobook) }
+            launch { downloadManager.removeDownload(audioPlayable.request.url) }
+            launch { offlineDrmManager.removeDownloadedDrmLicense(audioPlayable) }
         }
     }
 
