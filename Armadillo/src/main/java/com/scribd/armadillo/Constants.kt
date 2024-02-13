@@ -44,6 +44,9 @@ object Constants {
         const val EXOPLAYER_CACHE_DIRECTORY = "exoplayer_cache_directory"
 
         const val GLOBAL_SCOPE = "global_scope"
+
+        const val STANDARD_STORAGE = "standard_storage"
+        const val DRM_DOWNLOAD_STORAGE = "drm_download_storage"
     }
 
     internal object Exoplayer {

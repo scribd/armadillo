@@ -2,6 +2,8 @@ package com.scribd.armadillo.di
 
 import android.app.Application
 import android.content.Context
+import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
+import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
 import com.scribd.armadillo.broadcast.ArmadilloNoisyReceiver
 import com.scribd.armadillo.broadcast.ArmadilloNoisySpeakerReceiver
 import com.scribd.armadillo.broadcast.ArmadilloNotificationDeleteReceiver
@@ -68,4 +70,8 @@ internal class PlaybackModule {
     @Provides
     @Singleton
     fun drmMediaSourceHelper(drmMediaSourceHelperImpl: DrmMediaSourceHelperImpl): DrmMediaSourceHelper = drmMediaSourceHelperImpl
+
+    @Provides
+    @Singleton
+    fun drmSessionManagerProvider(): DrmSessionManagerProvider = DefaultDrmSessionManagerProvider()
 }

@@ -1,8 +1,10 @@
 package com.scribd.armadillo.encryption
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Base64
 import android.util.Log
+import com.scribd.armadillo.Constants
 import com.scribd.armadillo.models.DrmDownload
 import com.scribd.armadillo.models.DrmType
 import kotlinx.serialization.decodeFromString
@@ -11,6 +13,7 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 internal interface SecureStorage {
@@ -23,28 +26,28 @@ internal interface SecureStorage {
 }
 
 @Singleton
-internal class ArmadilloSecureStorage @Inject constructor() : SecureStorage {
-    private companion object {
+internal class ArmadilloSecureStorage @Inject constructor(
+    @Named(Constants.DI.STANDARD_STORAGE) private val standardStorage: SharedPreferences,
+    @Named(Constants.DI.DRM_DOWNLOAD_STORAGE) private val drmDownloadStorage: SharedPreferences,
+) : SecureStorage {
+    companion object {
         const val DOWNLOAD_KEY = "download_key"
         const val STRING_LENGTH = 20
         const val ALLOWED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789"
         const val DEFAULT = "82YEDKqPBEqA2qAb4bUU"
-        const val STANDARD_STORAGE_FILENAME = "armadillo.storage"
-        const val DOWNLOAD_FILENAME = "armadillo.download"
         const val TAG = "SecureStorage"
     }
 
     override fun downloadSecretKey(context: Context): ByteArray {
-        val sharedPreferences = context.getSharedPreferences(STANDARD_STORAGE_FILENAME, Context.MODE_PRIVATE)
-        return if (sharedPreferences.contains(DOWNLOAD_KEY)) {
-            val storedKey = sharedPreferences.getString(DOWNLOAD_KEY, DEFAULT)!!
+        return if (standardStorage.contains(DOWNLOAD_KEY)) {
+            val storedKey = standardStorage.getString(DOWNLOAD_KEY, DEFAULT)!!
             if (storedKey == DEFAULT) {
                 Log.e(TAG, "Storage Is Out of Alignment")
             }
             storedKey.toSecretByteArray
         } else {
             createRandomString().also {
-                sharedPreferences.edit().putString(DOWNLOAD_KEY, it).apply()
+                standardStorage.edit().putString(DOWNLOAD_KEY, it).apply()
             }.toSecretByteArray
         }
     }
@@ -56,37 +59,27 @@ internal class ArmadilloSecureStorage @Inject constructor() : SecureStorage {
     }
 
     override fun saveDrmDownload(context: Context, audioUrl: String, drmDownload: DrmDownload) {
-        context.getSharedPreferences(DOWNLOAD_FILENAME, Context.MODE_PRIVATE).also { sharedPrefs ->
-            val key = getDrmDownloadKey(audioUrl, drmDownload.drmType)
-            val value = Base64.encodeToString(Json.encodeToString(drmDownload).toByteArray(StandardCharsets.UTF_8), Base64.NO_WRAP)
-            sharedPrefs.edit().putString(key, value).apply()
-        }
+        val key = getDrmDownloadKey(audioUrl, drmDownload.drmType)
+        val value = Base64.encodeToString(Json.encodeToString(drmDownload).toByteArray(StandardCharsets.UTF_8), Base64.NO_WRAP)
+        drmDownloadStorage.edit().putString(key, value).apply()
     }
 
     override fun getDrmDownload(context: Context, audioUrl: String, drmType: DrmType): DrmDownload? =
-        context.getSharedPreferences(DOWNLOAD_FILENAME, Context.MODE_PRIVATE).let { sharedPrefs ->
-            sharedPrefs.getString(getDrmDownloadKey(audioUrl, drmType), null)?.decodeToDrmDownload()
-        }
+        drmDownloadStorage.getString(getDrmDownloadKey(audioUrl, drmType), null)?.decodeToDrmDownload()
 
     override fun getAllDrmDownloads(context: Context): Map<String, DrmDownload> =
-        context.getSharedPreferences(DOWNLOAD_FILENAME, Context.MODE_PRIVATE).let { sharedPrefs ->
-            sharedPrefs.all.keys.mapNotNull { key ->
-                sharedPrefs.getString(key, null)?.let { drmResult ->
-                    key to drmResult.decodeToDrmDownload()
-                }
-            }.toMap()
-        }
+        drmDownloadStorage.all.keys.mapNotNull { key ->
+            drmDownloadStorage.getString(key, null)?.let { drmResult ->
+                key to drmResult.decodeToDrmDownload()
+            }
+        }.toMap()
 
     override fun removeDrmDownload(context: Context, audioUrl: String, drmType: DrmType) {
-        context.getSharedPreferences(DOWNLOAD_FILENAME, Context.MODE_PRIVATE).also { sharedPrefs ->
-            sharedPrefs.edit().remove(getDrmDownloadKey(audioUrl, drmType)).apply()
-        }
+        drmDownloadStorage.edit().remove(getDrmDownloadKey(audioUrl, drmType)).apply()
     }
 
     override fun removeDrmDownload(context: Context, key: String) {
-        context.getSharedPreferences(DOWNLOAD_FILENAME, Context.MODE_PRIVATE).also { sharedPrefs ->
-            sharedPrefs.edit().remove(key).apply()
-        }
+        drmDownloadStorage.edit().remove(key).apply()
     }
 
     private val String.toSecretByteArray: ByteArray

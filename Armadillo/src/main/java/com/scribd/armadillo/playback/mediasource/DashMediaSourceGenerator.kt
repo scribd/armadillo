@@ -1,7 +1,7 @@
 package com.scribd.armadillo.playback.mediasource
 
 import android.content.Context
-import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
+import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
 import com.google.android.exoplayer2.offline.Download
 import com.google.android.exoplayer2.offline.DownloadHelper
 import com.google.android.exoplayer2.source.MediaSource
@@ -15,6 +15,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
     private val mediaSourceHelper: HeadersMediaSourceHelper,
     private val downloadTracker: DownloadTracker,
     private val drmMediaSourceHelper: DrmMediaSourceHelper,
+    private val drmSessionManagerProvider: DrmSessionManagerProvider,
 ) : MediaSourceGenerator {
 
     override fun generateMediaSource(context: Context, request: AudioPlayable.MediaRequest): MediaSource {
@@ -23,7 +24,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
         downloadTracker.getDownload(request.url.toUri())?.let {
             if (it.state != Download.STATE_FAILED) {
                 val mediaItem = drmMediaSourceHelper.createMediaItem(context = context, request = request, isDownload = true)
-                return DownloadHelper.createMediaSource(it.request, dataSourceFactory, DefaultDrmSessionManagerProvider().get(mediaItem))
+                return DownloadHelper.createMediaSource(it.request, dataSourceFactory, drmSessionManagerProvider.get(mediaItem))
             }
         }
 

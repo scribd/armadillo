@@ -1,6 +1,7 @@
 package com.scribd.armadillo.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.google.android.exoplayer2.offline.DownloadManager
 import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.offline.DownloaderFactory
@@ -97,6 +98,18 @@ internal class DownloadModule {
     @Singleton
     @Provides
     fun secureStorage(secureStorage: ArmadilloSecureStorage): SecureStorage = secureStorage
+
+    @Singleton
+    @Provides
+    @Named(Constants.DI.STANDARD_STORAGE)
+    fun standardStorage(context: Context): SharedPreferences =
+        context.getSharedPreferences("armadillo.storage", Context.MODE_PRIVATE)
+
+    @Singleton
+    @Provides
+    @Named(Constants.DI.DRM_DOWNLOAD_STORAGE)
+    fun drmDownloadStorage(context: Context): SharedPreferences =
+        context.getSharedPreferences("armadillo.download.drm", Context.MODE_PRIVATE)
 
     @Singleton
     @Provides
