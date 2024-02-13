@@ -29,9 +29,9 @@ internal class DashDrmLicenseDownloader @Inject constructor(context: Context) : 
         drmInfo: DrmInfo,
     ): DrmDownload {
         // Update data source for DRM license to add any DRM-specific request headers
-        drmDataSourceFactory.addCustomHeaders(drmInfo.drmHeaders)
+        drmDataSourceFactory.setDefaultRequestProperties(drmInfo.drmHeaders)
         // Update data source for audio to add custom headers
-        audioDataSourceFactory.addCustomHeaders(customRequestHeaders)
+        audioDataSourceFactory.setDefaultRequestProperties(customRequestHeaders)
 
         // Create helper to download DRM license
         val offlineHelper = when (drmInfo.drmType) {
@@ -64,12 +64,6 @@ internal class DashDrmLicenseDownloader @Inject constructor(context: Context) : 
         } catch (e: Exception) {
             Log.e(DrmLicenseDownloader.TAG, "Failure to release downloaded DRM license", e)
             throw DrmDownloadException(e)
-        }
-    }
-
-    private fun DefaultHttpDataSource.Factory.addCustomHeaders(customHeaders: Map<String, String>) {
-        customHeaders.takeIf { it.isNotEmpty() }?.let { headers ->
-            setDefaultRequestProperties(headers)
         }
     }
 }
