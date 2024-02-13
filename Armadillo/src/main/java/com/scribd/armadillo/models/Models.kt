@@ -144,6 +144,13 @@ data class Chapter(
 
 data class DrmInfo(val drmType: DrmType, val licenseServer: String, val drmHeaders: Map<String, String> = emptyMap()) : Serializable
 
+/**
+ * Object representing information about a downloaded DRM license.
+ *
+ * @param drmKeyId ID used to identify and to retrieve the downloaded license from local storage
+ * @param drmType the type of DRM solution of this license
+ * @param licenseServer the URL of the license server
+ */
 @kotlinx.serialization.Serializable
 data class DrmDownload(
     val drmKeyId: ByteArray,

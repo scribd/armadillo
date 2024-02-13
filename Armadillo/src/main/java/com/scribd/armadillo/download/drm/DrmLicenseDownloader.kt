@@ -14,7 +14,7 @@ internal interface DrmLicenseDownloader {
 
     /**
      * Download and persist the DRM license
-     * @return the key ID of the DRM license. This key ID can be used to fetch the license from storage
+     * @return object containing information about the downloaded DRM license
      */
     suspend fun downloadDrmLicense(
         requestUrl: String,
