@@ -15,20 +15,27 @@ import com.scribd.armadillo.Constants
 import com.scribd.armadillo.HeadersStore
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
+import com.scribd.armadillo.download.drm.OfflineDrmManager
+import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.DownloadServiceLaunchedInBackground
+import com.scribd.armadillo.error.UnexpectedDownloadException
 import com.scribd.armadillo.extensions.encodeInByteArray
 import com.scribd.armadillo.extensions.toUri
 import com.scribd.armadillo.hasSnowCone
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.playback.createRenderersFactory
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 
 internal interface DownloadEngine {
     fun init()
-    fun download(audiobook: AudioPlayable)
-    fun removeDownload(audiobook: AudioPlayable)
+    fun download(audioPlayable: AudioPlayable)
+    fun removeDownload(audioPlayable: AudioPlayable)
     fun removeAllDownloads()
     fun updateProgress()
 }
@@ -39,39 +46,67 @@ internal interface DownloadEngine {
  * Starts the [DownloadService] when necessary
  */
 @Singleton
-internal class ExoplayerDownloadEngine @Inject constructor(private val context: Context,
-                                                           private val downloadHeadersStore: HeadersStore,
-                                                           private val downloadService: Class<out DownloadService>,
-                                                           private val downloadManager: DownloadManager,
-                                                           private val downloadTracker: DownloadTracker,
-                                                           private val stateModifier: StateStore.Modifier) : DownloadEngine {
-    override fun init() = downloadTracker.init()
-
-    override fun download(audiobook: AudioPlayable) {
-        val downloadHelper = downloadHelper(context, audiobook.request)
-
-        downloadHelper.prepare(object : DownloadHelper.Callback {
-            override fun onPrepared(helper: DownloadHelper) {
-                val request = helper.getDownloadRequest(audiobook.id.encodeInByteArray())
-                try {
-                    startDownload(context, request)
-                } catch (e: Exception) {
-                    if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
-                        stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audiobook.id)))
-                    } else {
-                        stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
-                    }
-                }
-            }
-
-            override fun onPrepareError(helper: DownloadHelper, e: IOException) =
-                stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
-        })
+internal class ExoplayerDownloadEngine @Inject constructor(
+    private val context: Context,
+    private val downloadHeadersStore: HeadersStore,
+    private val downloadService: Class<out DownloadService>,
+    private val downloadManager: DownloadManager,
+    private val downloadTracker: DownloadTracker,
+    private val stateModifier: StateStore.Modifier,
+    private val offlineDrmManager: OfflineDrmManager,
+    @Named(Constants.DI.GLOBAL_SCOPE) private val globalScope: CoroutineScope,
+) : DownloadEngine {
+    private val errorHandler = CoroutineExceptionHandler { _, e ->
+        stateModifier.dispatch(ErrorAction(
+            error = e as? ArmadilloException ?: UnexpectedDownloadException(e)
+        ))
     }
 
-    override fun removeDownload(audiobook: AudioPlayable) = downloadManager.removeDownload(audiobook.request.url)
+    override fun init() = downloadTracker.init()
+    override fun download(audioPlayable: AudioPlayable) {
+        globalScope.launch(errorHandler) {
+            launch {
+                // Download DRM license for offline use
+                offlineDrmManager.downloadDrmLicenseForOffline(audioPlayable)
+            }
 
-    override fun removeAllDownloads() = downloadManager.removeAllDownloads()
+            launch {
+                val downloadHelper = downloadHelper(context, audioPlayable.request)
+
+                downloadHelper.prepare(object : DownloadHelper.Callback {
+                    override fun onPrepared(helper: DownloadHelper) {
+                        val request = helper.getDownloadRequest(audioPlayable.id.encodeInByteArray())
+                        try {
+                            startDownload(context, request)
+                        } catch (e: Exception) {
+                            if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
+                                stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audioPlayable.id)))
+                            } else {
+                                stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
+                            }
+                        }
+                    }
+
+                    override fun onPrepareError(helper: DownloadHelper, e: IOException) =
+                        stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
+                })
+            }
+        }
+    }
+
+    override fun removeDownload(audioPlayable: AudioPlayable) {
+        globalScope.launch(errorHandler) {
+            launch { downloadManager.removeDownload(audioPlayable.request.url) }
+            launch { offlineDrmManager.removeDownloadedDrmLicense(audioPlayable) }
+        }
+    }
+
+    override fun removeAllDownloads() {
+        globalScope.launch(errorHandler) {
+            launch { downloadManager.removeAllDownloads() }
+            launch { offlineDrmManager.removeAllDownloadedDrmLicenses() }
+        }
+    }
 
     override fun updateProgress() = downloadTracker.updateProgress()
 
@@ -96,6 +131,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(private val context: 
             C.TYPE_HLS,
             C.TYPE_DASH ->
                 DownloadHelper.forMediaItem(context, mediaItem, renderersFactory, DefaultDataSource.Factory(context, dataSourceFactory))
+
             C.TYPE_OTHER -> DownloadHelper.forMediaItem(context, mediaItem)
             else -> throw IllegalStateException("Unsupported type: $type")
         }

@@ -1,6 +1,7 @@
 package com.scribd.armadillo.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.google.android.exoplayer2.offline.DownloadManager
 import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.offline.DownloaderFactory
@@ -14,7 +15,6 @@ import com.scribd.armadillo.download.ArmadilloDatabaseProviderImpl
 import com.scribd.armadillo.download.ArmadilloDownloadManagerFactory
 import com.scribd.armadillo.download.CacheManager
 import com.scribd.armadillo.download.CacheManagerImpl
-import com.scribd.armadillo.download.MaxAgeCacheEvictor
 import com.scribd.armadillo.download.DefaultExoplayerDownloadService
 import com.scribd.armadillo.download.DownloadEngine
 import com.scribd.armadillo.download.DownloadManagerFactory
@@ -22,8 +22,11 @@ import com.scribd.armadillo.download.DownloadTracker
 import com.scribd.armadillo.download.ExoplayerDownloadEngine
 import com.scribd.armadillo.download.ExoplayerDownloadTracker
 import com.scribd.armadillo.download.HeaderAwareDownloaderFactory
+import com.scribd.armadillo.download.MaxAgeCacheEvictor
+import com.scribd.armadillo.encryption.ArmadilloSecureStorage
 import com.scribd.armadillo.encryption.ExoplayerEncryption
 import com.scribd.armadillo.encryption.ExoplayerEncryptionImpl
+import com.scribd.armadillo.encryption.SecureStorage
 import com.scribd.armadillo.exoplayerExternalDirectory
 import dagger.Module
 import dagger.Provides
@@ -91,6 +94,22 @@ internal class DownloadModule {
     @Singleton
     @Provides
     fun exoplayerEncryption(exoplayerEncryption: ExoplayerEncryptionImpl): ExoplayerEncryption = exoplayerEncryption
+
+    @Singleton
+    @Provides
+    fun secureStorage(secureStorage: ArmadilloSecureStorage): SecureStorage = secureStorage
+
+    @Singleton
+    @Provides
+    @Named(Constants.DI.STANDARD_STORAGE)
+    fun standardStorage(context: Context): SharedPreferences =
+        context.getSharedPreferences("armadillo.storage", Context.MODE_PRIVATE)
+
+    @Singleton
+    @Provides
+    @Named(Constants.DI.DRM_DOWNLOAD_STORAGE)
+    fun drmDownloadStorage(context: Context): SharedPreferences =
+        context.getSharedPreferences("armadillo.download.drm", Context.MODE_PRIVATE)
 
     @Singleton
     @Provides

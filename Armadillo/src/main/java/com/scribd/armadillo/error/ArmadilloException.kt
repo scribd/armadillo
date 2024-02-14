@@ -93,6 +93,10 @@ data class DownloadServiceLaunchedInBackground(val id: Int) : ArmadilloException
     override val errorCode = 304
 }
 
+data class UnexpectedDownloadException(val throwable: Throwable): ArmadilloException(exception = Exception(throwable)){
+    override val errorCode = 305
+}
+
 /**
  * Misc Errors
  */
@@ -127,4 +131,19 @@ data class UnknownRendererException(val exception: Exception) : ArmadilloExcepti
     override val errorCode: Int = 604
 }
 
+/**
+ * DRM errors
+ */
+
+data class DrmContentTypeUnsupportedException(val contentType: Int) : ArmadilloException(exception = Exception()) {
+    override val errorCode = 700
+}
+
+data class DrmDownloadException(val exception: Exception) : ArmadilloException(exception) {
+    override val errorCode = 701
+}
+
+data class DrmPlaybackException(val exception: Exception) : ArmadilloException(exception) {
+    override val errorCode = 702
+}
 

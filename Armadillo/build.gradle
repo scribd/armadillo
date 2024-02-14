@@ -14,6 +14,7 @@ plugins {
     // Extension of maven plugin that properly handles android dependencies
     id 'digital.wup.android-maven-publish' version "${MAVEN_PUBLISH_VERSION}"
     id 'org.jetbrains.dokka' version "${DOKKA_VERSION}" // Official Kotlin documentation engine - does both Kotlin and Java docs
+    id 'org.jetbrains.kotlin.plugin.serialization' version "${kotlin_version}"
 }
 
 android {
@@ -59,6 +60,8 @@ dependencies {
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
     kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
     implementation 'androidx.media:media:1.6.0'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${SERIALIZATON_VERSION}"
+
     testImplementation "org.robolectric:robolectric:4.5.1"
     testImplementation 'junit:junit:4.13.2'
     testImplementation("org.assertj:assertj-core:3.10.0")
@@ -85,7 +88,7 @@ publishing {
 
     publications {
         android.libraryVariants.all { variant ->
-            "${variant.name.capitalize()}Aar" (MavenPublication) {
+            "${variant.name.capitalize()}Aar"(MavenPublication) {
                 from(components[variant.name])
                 groupId project.PACKAGE_NAME
                 version project.LIBRARY_VERSION
@@ -98,7 +101,7 @@ publishing {
         }
 
         android.libraryVariants.all { variant ->
-            "${variant.name.capitalize()}SnapshotAar" (MavenPublication) {
+            "${variant.name.capitalize()}SnapshotAar"(MavenPublication) {
                 from(components[variant.name])
                 groupId project.PACKAGE_NAME
                 version "${project.LIBRARY_VERSION}-SNAPSHOT"

@@ -19,9 +19,9 @@ interface ExoplayerEncryption {
  * This class provides the plumbing for encrypting downloaded content & then reading this encrypted content.
  */
 @Singleton
-internal class ExoplayerEncryptionImpl @Inject constructor(applicationContext: Context) : ExoplayerEncryption {
+internal class ExoplayerEncryptionImpl @Inject constructor(applicationContext: Context,
+                                                           secureStorage: SecureStorage) : ExoplayerEncryption {
 
-    private val secureStorage: SecureStorage = ArmadilloSecureStorage()
     private val secret = secureStorage.downloadSecretKey(applicationContext)
 
     override fun dataSinkFactory(downloadCache: Cache) = DataSink.Factory {
@@ -30,6 +30,6 @@ internal class ExoplayerEncryptionImpl @Inject constructor(applicationContext: C
     }
 
     override fun dataSourceFactory(upstream: DataSource.Factory) =
-            DataSource.Factory { AesCipherDataSource(secret, upstream.createDataSource()) }
+        DataSource.Factory { AesCipherDataSource(secret, upstream.createDataSource()) }
 
 }
