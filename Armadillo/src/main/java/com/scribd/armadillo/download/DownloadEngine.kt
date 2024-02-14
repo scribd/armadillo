@@ -16,12 +16,15 @@ import com.scribd.armadillo.HeadersStore
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.download.drm.OfflineDrmManager
+import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.DownloadServiceLaunchedInBackground
+import com.scribd.armadillo.error.UnexpectedDownloadException
 import com.scribd.armadillo.extensions.encodeInByteArray
 import com.scribd.armadillo.extensions.toUri
 import com.scribd.armadillo.hasSnowCone
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.playback.createRenderersFactory
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -53,10 +56,15 @@ internal class ExoplayerDownloadEngine @Inject constructor(
     private val offlineDrmManager: OfflineDrmManager,
     @Named(Constants.DI.GLOBAL_SCOPE) private val globalScope: CoroutineScope,
 ) : DownloadEngine {
-    override fun init() = downloadTracker.init()
+    private val errorHandler = CoroutineExceptionHandler { _, e ->
+        stateModifier.dispatch(ErrorAction(
+            error = e as? ArmadilloException ?: UnexpectedDownloadException(e)
+        ))
+    }
 
+    override fun init() = downloadTracker.init()
     override fun download(audioPlayable: AudioPlayable) {
-        globalScope.launch {
+        globalScope.launch(errorHandler) {
             launch {
                 // Download DRM license for offline use
                 offlineDrmManager.downloadDrmLicenseForOffline(audioPlayable)
@@ -87,14 +95,14 @@ internal class ExoplayerDownloadEngine @Inject constructor(
     }
 
     override fun removeDownload(audioPlayable: AudioPlayable) {
-        globalScope.launch {
+        globalScope.launch(errorHandler) {
             launch { downloadManager.removeDownload(audioPlayable.request.url) }
             launch { offlineDrmManager.removeDownloadedDrmLicense(audioPlayable) }
         }
     }
 
     override fun removeAllDownloads() {
-        globalScope.launch {
+        globalScope.launch(errorHandler) {
             launch { downloadManager.removeAllDownloads() }
             launch { offlineDrmManager.removeAllDownloadedDrmLicenses() }
         }

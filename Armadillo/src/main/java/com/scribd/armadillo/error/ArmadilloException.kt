@@ -93,6 +93,10 @@ data class DownloadServiceLaunchedInBackground(val id: Int) : ArmadilloException
     override val errorCode = 304
 }
 
+data class UnexpectedDownloadException(val throwable: Throwable): ArmadilloException(exception = Exception(throwable)){
+    override val errorCode = 305
+}
+
 /**
  * Misc Errors
  */
