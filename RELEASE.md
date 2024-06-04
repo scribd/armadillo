@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.3.2
+- Added a fix for updating the playback info progress in the reducer for seek related controls
+
 ## 1.3.1
 - Adds support for offline DRM for downloaded MPEG-DASH audio
 
