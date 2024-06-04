@@ -62,6 +62,70 @@ class ReducerTest {
     }
 
     @Test
+    fun reduce_seek_updatesPlaybackAndControlState() {
+        val targetDistance = 10.milliseconds
+        val newState = Reducer.reduce(MockModels.appState(), SeekAction(true, targetDistance))
+        assertThat(newState.playbackInfo!!.progress.positionInDuration).isEqualTo(targetDistance)
+        assertThat(newState.playbackInfo!!.progress.currentChapterIndex).isEqualTo(0)
+
+        val controlState = newState.playbackInfo!!.controlState
+        assertThat(controlState.isSeeking).isTrue
+        assertThat(controlState.seekTarget).isEqualTo(targetDistance)
+    }
+
+    @Test
+    fun reduce_fastForward_updatesPlaybackAndControlState() {
+        val targetDistance = 10.milliseconds
+        val newState = Reducer.reduce(MockModels.appState(), FastForwardAction(targetDistance))
+        assertThat(newState.playbackInfo!!.progress.positionInDuration).isEqualTo(targetDistance)
+        assertThat(newState.playbackInfo!!.progress.currentChapterIndex).isEqualTo(0)
+
+        val controlState = newState.playbackInfo!!.controlState
+        assertThat(controlState.isSeeking).isTrue
+        assertThat(controlState.seekTarget).isEqualTo(targetDistance)
+        assertThat(controlState.isFastForwarding).isTrue
+    }
+
+    @Test
+    fun reduce_rewind_updatesPlaybackAndControlState() {
+        val targetDistance = 10.milliseconds
+        val newState = Reducer.reduce(MockModels.appState(), RewindAction(targetDistance))
+        assertThat(newState.playbackInfo!!.progress.positionInDuration).isEqualTo(targetDistance)
+        assertThat(newState.playbackInfo!!.progress.currentChapterIndex).isEqualTo(0)
+
+        val controlState = newState.playbackInfo!!.controlState
+        assertThat(controlState.isSeeking).isTrue
+        assertThat(controlState.seekTarget).isEqualTo(targetDistance)
+        assertThat(controlState.isRewinding).isTrue
+    }
+
+    @Test
+    fun reduce_skipNext_updatesPlaybackAndControlState() {
+        val targetDistance = 10.milliseconds
+        val newState = Reducer.reduce(MockModels.appState(), SkipNextAction(targetDistance))
+        assertThat(newState.playbackInfo!!.progress.positionInDuration).isEqualTo(targetDistance)
+        assertThat(newState.playbackInfo!!.progress.currentChapterIndex).isEqualTo(0)
+
+        val controlState = newState.playbackInfo!!.controlState
+        assertThat(controlState.isSeeking).isTrue
+        assertThat(controlState.seekTarget).isEqualTo(targetDistance)
+        assertThat(controlState.isNextChapter).isTrue
+    }
+
+    @Test
+    fun reduce_skipPrev_updatesPlaybackAndControlState() {
+        val targetDistance = 10.milliseconds
+        val newState = Reducer.reduce(MockModels.appState(), SkipPrevAction(targetDistance))
+        assertThat(newState.playbackInfo!!.progress.positionInDuration).isEqualTo(targetDistance)
+        assertThat(newState.playbackInfo!!.progress.currentChapterIndex).isEqualTo(0)
+
+        val controlState = newState.playbackInfo!!.controlState
+        assertThat(controlState.isSeeking).isTrue
+        assertThat(controlState.seekTarget).isEqualTo(targetDistance)
+        assertThat(controlState.isPrevChapter).isTrue
+    }
+
+    @Test
     fun reduce_NewAudiobookAction() {
         val newState = Reducer.reduce(MockModels.appState(),
             NewAudioPlayableAction(MockModels.audiobook(),

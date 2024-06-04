@@ -175,14 +175,29 @@ internal object Reducer {
                             isSeeking = action.isSeeking,
                             seekTarget = action.seekPositionTarget)
                 } else MediaControlState()
-
+                val progress = if (action.seekPositionTarget != null) {
+                    playbackInfo.progress.copy(
+                        positionInDuration = action.seekPositionTarget,
+                        currentChapterIndex = playbackInfo.audioPlayable.getChapterIndexAtOffset(action.seekPositionTarget))
+                } else {
+                    playbackInfo.progress
+                }
                 oldState.copy(playbackInfo = playbackInfo.copy(
+                        progress = progress,
                         controlState = controlState))
                         .apply { debugState = newDebug }
             }
             is FastForwardAction -> {
                 val playbackInfo = oldState.playbackInfo ?: throw ActionBeforeSetup(action)
+                val progress = if (action.seekPositionTarget != null) {
+                    playbackInfo.progress.copy(
+                        positionInDuration = action.seekPositionTarget,
+                        currentChapterIndex = playbackInfo.audioPlayable.getChapterIndexAtOffset(action.seekPositionTarget))
+                } else {
+                    playbackInfo.progress
+                }
                 oldState.copy(playbackInfo = playbackInfo.copy(
+                        progress = progress,
                         controlState = MediaControlState(
                                 isSeeking = true,
                                 isFastForwarding = true,
@@ -191,7 +206,15 @@ internal object Reducer {
             }
             is RewindAction -> {
                 val playbackInfo = oldState.playbackInfo ?: throw ActionBeforeSetup(action)
+                val progress = if (action.seekPositionTarget != null) {
+                    playbackInfo.progress.copy(
+                        positionInDuration = action.seekPositionTarget,
+                        currentChapterIndex = playbackInfo.audioPlayable.getChapterIndexAtOffset(action.seekPositionTarget))
+                } else {
+                    playbackInfo.progress
+                }
                 oldState.copy(playbackInfo = playbackInfo.copy(
+                        progress = progress,
                         controlState = MediaControlState(
                                 isSeeking = true,
                                 isRewinding = true,
@@ -200,7 +223,15 @@ internal object Reducer {
             }
             is SkipNextAction -> {
                 val playbackInfo = oldState.playbackInfo ?: throw ActionBeforeSetup(action)
+                val progress = if (action.seekPositionTarget != null) {
+                    playbackInfo.progress.copy(
+                        positionInDuration = action.seekPositionTarget,
+                        currentChapterIndex = playbackInfo.audioPlayable.getChapterIndexAtOffset(action.seekPositionTarget))
+                } else {
+                    playbackInfo.progress
+                }
                 oldState.copy(playbackInfo = playbackInfo.copy(
+                        progress = progress,
                         controlState = MediaControlState(
                                 isSeeking = true,
                                 isNextChapter = true,
@@ -209,7 +240,15 @@ internal object Reducer {
             }
             is SkipPrevAction -> {
                 val playbackInfo = oldState.playbackInfo ?: throw ActionBeforeSetup(action)
+                val progress = if (action.seekPositionTarget != null) {
+                    playbackInfo.progress.copy(
+                        positionInDuration = action.seekPositionTarget,
+                        currentChapterIndex = playbackInfo.audioPlayable.getChapterIndexAtOffset(action.seekPositionTarget))
+                } else {
+                    playbackInfo.progress
+                }
                 oldState.copy(playbackInfo = playbackInfo.copy(
+                        progress = progress,
                         controlState = MediaControlState(
                                 isSeeking = true,
                                 isPrevChapter = true,
