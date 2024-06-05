@@ -61,19 +61,19 @@ internal data class SeekAction(val isSeeking: Boolean, val seekPositionTarget: M
     override val name = "Seeking: $isSeeking"
 }
 
-internal data class FastForwardAction(val seekPositionTarget: Milliseconds?) : Action {
+internal data class FastForwardAction(val seekPositionTarget: Milliseconds) : Action {
     override val name = "FastForwardAction: $seekPositionTarget"
 }
 
-internal data class RewindAction(val seekPositionTarget: Milliseconds?) : Action {
+internal data class RewindAction(val seekPositionTarget: Milliseconds) : Action {
     override val name = "RewindAction: $seekPositionTarget"
 }
 
-internal data class SkipNextAction(val seekPositionTarget: Milliseconds?) : Action {
+internal data class SkipNextAction(val seekPositionTarget: Milliseconds) : Action {
     override val name = "SkipNextAction: $seekPositionTarget"
 }
 
-internal data class SkipPrevAction(val seekPositionTarget: Milliseconds?) : Action {
+internal data class SkipPrevAction(val seekPositionTarget: Milliseconds) : Action {
     override val name = "SkipNextAction: $seekPositionTarget"
 }
 
