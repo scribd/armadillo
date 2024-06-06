@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.3.2
+- Added a fix for order of dispatched actions during seek related events
+
 ## 1.3.1
 - Adds support for offline DRM for downloaded MPEG-DASH audio
 
