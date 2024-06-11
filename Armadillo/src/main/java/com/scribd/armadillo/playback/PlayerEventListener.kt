@@ -34,6 +34,11 @@ internal class PlayerEventListener : Player.Listener {
     @Inject
     internal lateinit var stateModifier: StateStore.Modifier
 
+    override fun onEvents(player: Player, events: Player.Events) {
+        super.onEvents(player, events)
+        Log.e(TAG, "ExoPlayer events: ${events.describe()}")
+    }
+
     override fun onPlayerError(error: PlaybackException) {
         val exception = (error as ExoPlaybackException).toArmadilloException()
         stateModifier.dispatch(ErrorAction(exception))
@@ -80,4 +85,12 @@ internal class PlayerEventListener : Player.Listener {
             else -> "unknown"
         }
     }
+}
+
+fun Player.Events.describe(): String {
+    val flags = mutableListOf<Int>()
+    repeat(size()) {
+        flags.add(get(it))
+    }
+    return flags.joinToString()
 }

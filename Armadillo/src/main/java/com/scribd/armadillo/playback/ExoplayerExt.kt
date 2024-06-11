@@ -1,7 +1,9 @@
 package com.scribd.armadillo.playback
 
 import android.content.Context
+import android.util.Log
 import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.audio.AudioAttributes
@@ -41,12 +43,24 @@ internal fun ExoPlayer.playerDuration(): Milliseconds? = if (duration == C.TIME_
  *
  * We provide our own renderers factory so that Proguard can remove any non-audio rendering code.
  */
-internal fun createExoplayerInstance(context: Context, attributes: AudioAttributes): ExoPlayer =
-    ExoPlayer.Builder(context, createRenderersFactory(context))
+internal fun createExoplayerInstance(context: Context, attributes: AudioAttributes): ExoPlayer {
+    val loadControl = DefaultLoadControl.Builder()
+        .setBufferDurationsMs(
+            20000,
+            120 * 60 * 1000, // 2hrs??
+            5000,
+            5000,
+        )
+        .build()
+
+    Log.e("ExoplayerExt", "++++ USING LOAD CONTROL 2hrs")
+    return ExoPlayer.Builder(context, createRenderersFactory(context))
+        .setLoadControl(loadControl)
         .build().apply {
             setAudioAttributes(attributes, true)
+            addAnalyticsListener(ArmadilloAnalyticsListener())
         }
-
+}
 internal fun createRenderersFactory(context: Context): RenderersFactory =
     RenderersFactory { eventHandler, _, audioRendererEventListener, _, _ ->
         // Default audio sink taken from DefaultRenderersFactory. We need to provide it in order to enable offloading
