@@ -88,10 +88,12 @@ publishing {
 
     publications {
         android.libraryVariants.all { variant ->
+            def buildType = variant.name.capitalize()
+            def variantSuffix = (buildType == "Debug") ? "-Debug" : ""
             "${variant.name.capitalize()}Aar"(MavenPublication) {
                 from(components[variant.name])
                 groupId project.PACKAGE_NAME
-                version project.LIBRARY_VERSION
+                version "${project.LIBRARY_VERSION}${variantSuffix}"
                 artifactId project.getName().toLowerCase()
                 // Add sources to artifact
                 artifact androidSourcesJar
