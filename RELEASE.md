@@ -1,5 +1,9 @@
 # Project Armadillo Release Notes
 
+## 1.3.3
+- Reverted fix in 1.3.2 as it may have affected listening progress not being correctly reported
+- Added support for passing in load control parameters via ArmadilloConfiguration to the exo player instance
+
 ## 1.3.2
 - Added a fix for order of dispatched actions during seek related events
 

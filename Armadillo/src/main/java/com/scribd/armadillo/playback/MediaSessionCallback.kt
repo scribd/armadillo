@@ -13,7 +13,6 @@ import androidx.annotation.VisibleForTesting
 import com.scribd.armadillo.ArmadilloConfiguration
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Constants.AUDIO_POSITION_SHIFT_IN_MS
-import com.scribd.armadillo.Milliseconds
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.CustomMediaSessionAction
 import com.scribd.armadillo.actions.UpdateProgressAction
@@ -125,9 +124,6 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
 
     override fun onPlayFromUri(uri: Uri, extras: Bundle) {
         val newAudioPlayable = extras.getSerializable(Constants.Keys.KEY_AUDIO_PLAYABLE) as AudioPlayable
-        val isAutoPlay = extras.getBoolean(Constants.Keys.KEY_IS_AUTO_PLAY, false)
-        val maxDurationDiscrepancy = extras.getInt(Constants.Keys.KEY_MAX_DURATION_DISCREPANCY,
-            ArmadilloConfiguration.MAX_DISCREPANCY_DEFAULT)
 
         if (newAudioPlayable == stateProvider.currentState.playbackInfo?.audioPlayable && isPlaying) {
             Log.v(TAG, "onPlayFromUri: already playing audioPlayable: ${newAudioPlayable.id} - Skipping setup")
@@ -138,10 +134,11 @@ internal class MediaSessionCallback(private val onMediaSessionEventListener: OnM
             onStop()
         }
 
-        @Suppress("UNCHECKED_CAST") val initialOffset = extras.getSerializable(Constants.Keys.KEY_INITIAL_OFFSET) as Milliseconds
+        val config = extras.getSerializable(Constants.Keys.KEY_ARMADILLO_CONFIG) as ArmadilloConfiguration
+        Log.v(TAG, "ArmadilloConfiguration: $config")
         playbackEngine = playbackEngineFactory.createPlaybackEngine(newAudioPlayable)
-        playbackEngine?.beginPlayback(isAutoPlay, maxDurationDiscrepancy, initialOffset)
-        playbackEngine?.seekTo(initialOffset)
+        playbackEngine?.beginPlayback(config)
+        playbackEngine?.seekTo(config.initialOffset)
 
         isPlaying = true
 

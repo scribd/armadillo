@@ -28,12 +28,8 @@ object Constants {
     private val APP_NAME = R.string.arm_app_name
 
     internal object Keys {
+        const val KEY_ARMADILLO_CONFIG = "armadillo_config"
         const val KEY_AUDIO_PLAYABLE = "audio_playable"
-        const val KEY_IS_AUTO_PLAY = "is_auto_play"
-        const val KEY_MAX_DURATION_DISCREPANCY = "max_duration_discrepancy"
-        const val KEY_PLAYBACK_READY = "playback_ready"
-        const val KEY_INITIAL_OFFSET = "initial_offset"
-        const val KEY_ERROR = "error"
     }
 
     internal object DI {

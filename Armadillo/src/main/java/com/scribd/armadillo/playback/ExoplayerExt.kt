@@ -3,6 +3,7 @@ package com.scribd.armadillo.playback
 import android.content.Context
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.LoadControl
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.audio.AudioCapabilities
@@ -41,8 +42,9 @@ internal fun ExoPlayer.playerDuration(): Milliseconds? = if (duration == C.TIME_
  *
  * We provide our own renderers factory so that Proguard can remove any non-audio rendering code.
  */
-internal fun createExoplayerInstance(context: Context, attributes: AudioAttributes): ExoPlayer =
+internal fun createExoplayerInstance(context: Context, attributes: AudioAttributes, loadControl: LoadControl): ExoPlayer =
     ExoPlayer.Builder(context, createRenderersFactory(context))
+        .setLoadControl(loadControl)
         .build().apply {
             setAudioAttributes(attributes, true)
         }
