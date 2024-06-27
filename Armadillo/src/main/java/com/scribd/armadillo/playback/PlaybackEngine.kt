@@ -257,7 +257,7 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
     }
 
     private fun seekToExo(position: Milliseconds) {
-        stateModifier.dispatch(PlaybackProgressAction(position, exoPlayer.playerDuration()))
         exoPlayer.seekTo(exoPlayer.currentMediaItemIndex, position.longValue)
+        stateModifier.dispatch(PlaybackProgressAction(position, exoPlayer.playerDuration()))
     }
 }
