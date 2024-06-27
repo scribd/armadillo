@@ -138,7 +138,7 @@ class MediaSessionCallbackTest {
         mediaSessionCallback.onPlayFromUri(URL.toUri(), bundleTwo)
         verify(mediaSessionCallback.playbackEngine!!, times(1)).deinit()
         verify(mediaSessionCallback.playbackEngine!!, times(1))
-            .beginPlayback(false, ArmadilloConfiguration.MAX_DISCREPANCY_DEFAULT, 0.milliseconds)
+            .beginPlayback(ArmadilloConfiguration())
     }
 
     @Test
@@ -147,7 +147,7 @@ class MediaSessionCallbackTest {
         whenever(playbackInfo.audioPlayable).thenReturn(audiobookTwo)
         mediaSessionCallback.onPlayFromUri(URL.toUri(), bundleOne)
         verify(mediaSessionCallback.playbackEngine!!, times(1))
-            .beginPlayback(false, ArmadilloConfiguration.MAX_DISCREPANCY_DEFAULT, 0.milliseconds)
+            .beginPlayback(ArmadilloConfiguration())
     }
 
     @Test
@@ -321,6 +321,6 @@ class MediaSessionCallbackTest {
 
     private fun Bundle.addAudiobook(audiobook: AudioPlayable) {
         putSerializable(Constants.Keys.KEY_AUDIO_PLAYABLE, audiobook)
-        putSerializable(Constants.Keys.KEY_INITIAL_OFFSET, 0.milliseconds)
+        putSerializable(Constants.Keys.KEY_ARMADILLO_CONFIG, ArmadilloConfiguration())
     }
 }
