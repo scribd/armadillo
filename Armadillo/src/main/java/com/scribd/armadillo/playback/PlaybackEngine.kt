@@ -2,10 +2,12 @@ package com.scribd.armadillo.playback
 
 import android.content.Context
 import androidx.annotation.VisibleForTesting
+import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.upstream.cache.Cache
+import com.scribd.armadillo.ArmadilloConfiguration
 import com.scribd.armadillo.ArmadilloPlayerChoreographer
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Milliseconds
@@ -46,7 +48,7 @@ internal interface AudioPlaybackEngine {
      */
     var offloadAudio: Boolean
 
-    fun beginPlayback(isAutoPlay: Boolean, maxDurationDiscrepancy: Int, initialOffset: Milliseconds = 0.milliseconds)
+    fun beginPlayback(config: ArmadilloConfiguration)
 
     /**
      * Updates the request for the currently playing media. This could be to change the request headers.
@@ -118,10 +120,22 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
             }
         }
 
-    override fun beginPlayback(isAutoPlay: Boolean, maxDurationDiscrepancy: Int, initialOffset: Milliseconds) {
-        stateModifier.dispatch(NewAudioPlayableAction(audioPlayable, maxDurationDiscrepancy, initialOffset))
+    override fun beginPlayback(config: ArmadilloConfiguration) {
+        stateModifier.dispatch(NewAudioPlayableAction(
+            audioPlayable = audioPlayable,
+            maxDurationDiscrepancy = config.maxDurationDiscrepancy,
+            initialOffset = config.initialOffset))
 
-        exoPlayer = createExoplayerInstance(context, audioAttributes.exoPlayerAttrs)
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(config.minBufferMs,
+                config.maxBufferMs,
+                config.bufferForPlaybackMs,
+                config.bufferForPlaybackAfterRebufferMs)
+            .setTargetBufferBytes(config.targetBufferSize)
+            .setPrioritizeTimeOverSizeThresholds(config.prioritizeTimeOverSizeThresholds)
+            .build()
+
+        exoPlayer = createExoplayerInstance(context, audioAttributes.exoPlayerAttrs, loadControl)
 
         val mediaSource = mediaSourceRetriever.generateMediaSource(audioPlayable.request, context)
         exoPlayer.setMediaSource(mediaSource)
@@ -129,7 +143,7 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
 
         exoPlayer.addListener(playerEventListener)
 
-        exoPlayer.playWhenReady = isAutoPlay
+        exoPlayer.playWhenReady = config.isAutoPlay
 
         stateModifier.dispatch(PlaybackEngineReady(true))
         stateModifier.dispatch(PlayerStateAction(PlaybackState.PAUSED))

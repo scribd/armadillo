@@ -268,10 +268,8 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
         mediaSessionConnection.connectToMediaSession(object : MediaSessionConnection.Listener {
             override fun onConnectionCallback(transportControls: MediaControllerCompat.TransportControls) {
                 val bundle = Bundle()
+                bundle.putSerializable(Constants.Keys.KEY_ARMADILLO_CONFIG, config)
                 bundle.putSerializable(Constants.Keys.KEY_AUDIO_PLAYABLE, audioPlayable)
-                bundle.putSerializable(Constants.Keys.KEY_INITIAL_OFFSET, config.initialOffset)
-                bundle.putBoolean(Constants.Keys.KEY_IS_AUTO_PLAY, config.isAutoPlay)
-                bundle.putInt(Constants.Keys.KEY_MAX_DURATION_DISCREPANCY, config.maxDurationDiscrepancy)
                 transportControls.playFromUri(audioPlayable.request.url.toUri(), bundle)
                 updateProgressPollTask()
             }
