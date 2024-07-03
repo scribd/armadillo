@@ -4,6 +4,7 @@
     package="com.scribd.armadillotestapp">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <uses-feature
         android:name="android.hardware.type.automotive"
@@ -45,7 +46,8 @@
 
         <service
             android:name="com.scribd.armadillo.download.DefaultExoplayerDownloadService"
-            android:exported="false">
+            android:exported="false"
+            android:permission="android.permission.FOREGROUND_SERVICE">
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.downloadService.action.INIT"/>
                 <category android:name="android.intent.category.DEFAULT"/>

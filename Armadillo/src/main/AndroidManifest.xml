@@ -13,6 +13,7 @@
             android:exported="true"
             android:stopWithTask="false"
             android:foregroundServiceType="mediaPlayback"
+            android:permission="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
             tools:ignore="ExportedService">
 
             <intent-filter>

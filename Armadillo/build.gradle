@@ -18,16 +18,16 @@ plugins {
 }
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 1
         versionName project.LIBRARY_VERSION
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -44,6 +44,9 @@ android {
     }
 
     resourcePrefix 'arm'
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
