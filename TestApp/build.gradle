@@ -15,10 +15,6 @@ java {
 android {
     compileSdk 34
 
-    compileOptions {
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
     defaultConfig {
         applicationId "com.scribd.armadillotestapp"
         minSdkVersion 21
