@@ -128,7 +128,7 @@ class MediaSessionCallbackTest {
         mediaSessionCallback.isPlaying = true
         whenever(playbackInfo.audioPlayable).thenReturn(audiobookOne)
         mediaSessionCallback.onPlayFromUri(URL.toUri(), bundleOne)
-        verify(mediaSessionCallback, Mockito.times(0)).playbackEngine!!
+        verify(mediaSessionCallback.playbackEngine!!, times(0)).deinit()
     }
 
     @Test

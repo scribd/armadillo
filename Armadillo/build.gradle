@@ -65,7 +65,7 @@ dependencies {
     implementation 'androidx.media:media:1.6.0'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${SERIALIZATON_VERSION}"
 
-    testImplementation "org.robolectric:robolectric:4.5.1"
+    testImplementation "org.robolectric:robolectric:4.9.2"
     testImplementation 'junit:junit:4.13.2'
     testImplementation("org.assertj:assertj-core:3.10.0")
     testImplementation "org.mockito:mockito-core:5.6.0"
