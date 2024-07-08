@@ -31,15 +31,22 @@ jobs:
     steps:
       # Clone the repo
       - name: Clone Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Cache the gradle build dependencies for faster builds
       - name: Cache Gradle Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ env.GRADLE_CACHE_PATH }}
           key: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
           restore-keys: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-
+
+      # Download Java and set version
+      - name: Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ vars.JDK_VERSION }}
+          distribution: 'temurin'
 
       # Test using gradle
       - name: Run ${{ matrix.project }} Tests
@@ -48,17 +55,17 @@ jobs:
       # Upload the html test report as a build artifact for easier debugging
       - name: Upload Test Report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.test-group }} Test Reports
+          name: ${{ matrix.base-folder }} Test Reports
           path: ${{ matrix.base-folder }}/build/reports/tests/${{ matrix.test-report-folder }}/*
 
       # Upload XML logs as build artifacts (accessible from the Summary page of the run)
       - name: Upload JUnit Logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.test-group }} Testing Logs
+          name: ${{ matrix.base-folder }} Testing Logs
           path: "${{ matrix.base-folder }}/build/test-results/test*UnitTest/TEST-*.xml"
 
   # If the workflow was started on the main branch then publish the library and test app. If started on a release branch publish only the library.
@@ -82,15 +89,22 @@ jobs:
     steps:
       # Retrieve the repo
       - name: Clone Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Cache the gradle build dependencies for faster builds
       - name: Cache Gradle Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ env.GRADLE_CACHE_PATH }}
           key: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/gradle.properties') }}
           restore-keys: ${{ runner.os }}-${{ hashFiles('.gradle-cache-buster') }}-gradle-
+
+      # Download Java and set version
+      - name: Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ vars.JDK_VERSION }}
+          distribution: 'temurin'
 
       # Build using gradle
       - name: Build ${{ matrix.project }} Release
@@ -116,7 +130,7 @@ jobs:
 
       # Upload the AAR file as a build artifact (accessible from the Summary page of the run)
       - name: Upload AAR file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
           path: ${{ matrix.artifact-path }}
