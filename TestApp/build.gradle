@@ -6,8 +6,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 android {
-    compileSdkVersion 32
+    compileSdk 34
 
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
@@ -16,7 +22,7 @@ android {
     defaultConfig {
         applicationId "com.scribd.armadillotestapp"
         minSdkVersion 21
-        targetSdkVersion 32
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -49,6 +55,7 @@ android {
             dimension "ARMADILLO_SOURCE"
         }
     }
+    namespace 'com.scribd.armadillotestapp'
 }
 
 dependencies {

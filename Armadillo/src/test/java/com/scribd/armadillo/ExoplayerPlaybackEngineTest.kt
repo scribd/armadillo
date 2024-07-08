@@ -13,11 +13,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.times
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyZeroInteractions
 import org.mockito.kotlin.whenever
 
 class ExoplayerPlaybackEngineTest {
@@ -197,7 +197,7 @@ class ExoplayerPlaybackEngineTest {
 
         playbackEngine.updateProgress()
 
-        verifyZeroInteractions(stateModifier)
+        verify(stateModifier, times(0)).dispatch(any())
     }
 
     @Test
@@ -208,7 +208,7 @@ class ExoplayerPlaybackEngineTest {
 
         playbackEngine.updateProgress()
 
-        verifyZeroInteractions(stateModifier)
+        verify(stateModifier, times(0)).dispatch(any())
     }
 
     @Test
@@ -219,7 +219,7 @@ class ExoplayerPlaybackEngineTest {
 
         playbackEngine.updateProgress()
 
-        verifyZeroInteractions(stateModifier)
+        verify(stateModifier, times(0)).dispatch(any())
     }
 
     @Test

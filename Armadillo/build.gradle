@@ -17,6 +17,12 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "${kotlin_version}"
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 android {
     compileSdk 34
 
@@ -28,8 +34,6 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 1
-        versionName project.LIBRARY_VERSION
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'proguard-rules.pro'
         buildConfigField("String", "VERSION_NAME", "\"${project.LIBRARY_VERSION}\"")
@@ -47,6 +51,7 @@ android {
     buildFeatures {
         buildConfig true
     }
+    namespace 'com.scribd.armadillo'
 }
 
 dependencies {
@@ -68,8 +73,8 @@ dependencies {
     testImplementation "org.robolectric:robolectric:4.5.1"
     testImplementation 'junit:junit:4.13.2'
     testImplementation("org.assertj:assertj-core:3.10.0")
-    testImplementation "org.mockito:mockito-core:2.28.2"
-    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0") {
+    testImplementation "org.mockito:mockito-core:5.6.0"
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0") {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-reflect'
     }
