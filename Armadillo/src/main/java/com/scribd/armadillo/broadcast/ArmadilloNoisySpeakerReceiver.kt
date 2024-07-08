@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
+import android.os.Build
 import android.util.Log
 
 /**
@@ -45,7 +46,12 @@ class ArmadilloNoisyReceiver(val application: Application)
         if(!isRegistered) {
             this.listener = listener
             Log.v(TAG, "registered for listening noisy")
-            application.registerReceiver(this, intentFilter)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                application.registerReceiver(this, intentFilter, Context.RECEIVER_EXPORTED)
+            } else {
+                application.registerReceiver(this, intentFilter)
+            }
             isRegistered = true
         }
     }

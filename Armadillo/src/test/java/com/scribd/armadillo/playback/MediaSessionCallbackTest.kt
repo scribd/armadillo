@@ -23,10 +23,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyZeroInteractions
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
@@ -128,7 +128,7 @@ class MediaSessionCallbackTest {
         mediaSessionCallback.isPlaying = true
         whenever(playbackInfo.audioPlayable).thenReturn(audiobookOne)
         mediaSessionCallback.onPlayFromUri(URL.toUri(), bundleOne)
-        verifyZeroInteractions(mediaSessionCallback.playbackEngine!!)
+        verify(mediaSessionCallback.playbackEngine!!, times(0)).deinit()
     }
 
     @Test

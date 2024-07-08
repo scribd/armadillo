@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.4.0
+- Targets Android 14 (SDK 34), with appropriate service permissions.
+
 ## 1.3.3
 - Reverted fix in 1.3.2 as it may have affected listening progress not being correctly reported
 - Added support for passing in load control parameters via ArmadilloConfiguration to the exo player instance

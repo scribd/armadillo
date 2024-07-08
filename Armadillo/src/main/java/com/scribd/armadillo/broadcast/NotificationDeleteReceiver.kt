@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import com.scribd.armadillo.hasSnowCone
 
 /**
@@ -33,7 +34,11 @@ internal class ArmadilloNotificationDeleteReceiver(val application: Application)
 
     override fun register(listener: NotificationDeleteReceiver.Listener) {
         if (!isRegistered) {
-            application.registerReceiver(this, IntentFilter(ACTION))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                application.registerReceiver(this, IntentFilter(ACTION), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                application.registerReceiver(this, IntentFilter(ACTION))
+            }
             deleteListener = listener
             isRegistered = true
         }
