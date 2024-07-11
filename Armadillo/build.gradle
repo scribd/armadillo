@@ -50,21 +50,40 @@ android {
 }
 
 dependencies {
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
 
-    implementation "com.google.android.exoplayer:exoplayer-core:${EXOPLAYER_VERSION}"
-    implementation "com.google.android.exoplayer:exoplayer-hls:${EXOPLAYER_VERSION}"
-    implementation "com.google.android.exoplayer:exoplayer-dash:${EXOPLAYER_VERSION}"
-    implementation "com.google.android.exoplayer:extension-mediasession:${EXOPLAYER_VERSION}"
+    compileOnly files('../libs/exoplayer-core-release.aar')
+    implementation "com.google.android.exoplayer:exoplayer-common:${EXOPLAYER_VERSION}"
+    implementation ("com.google.android.exoplayer:exoplayer-hls:${EXOPLAYER_VERSION}") {
+        exclude group: 'com.google.android.exoplayer', module: 'exoplayer-core'
+    }
+    implementation ("com.google.android.exoplayer:exoplayer-dash:${EXOPLAYER_VERSION}") {
+        exclude group: 'com.google.android.exoplayer', module: 'exoplayer-core'
+    }
+    implementation ("com.google.android.exoplayer:extension-mediasession:${EXOPLAYER_VERSION}"){
+        exclude group: 'com.google.android.exoplayer', module: 'exoplayer-core'
+    }
+    implementation ("com.google.android.exoplayer:exoplayer-database:${EXOPLAYER_VERSION}") {
+        exclude group: 'com.google.android.exoplayer', module: 'exoplayer-core'
+    }
+    implementation ("com.google.android.exoplayer:exoplayer-datasource:${EXOPLAYER_VERSION}") {
+        exclude group: 'com.google.android.exoplayer', module: 'exoplayer-core'
+    }
+    implementation ("com.google.android.exoplayer:exoplayer-extractor:${EXOPLAYER_VERSION}") {
+        exclude group: 'com.google.android.exoplayer', module: 'exoplayer-core'
+    }
 
     implementation "io.reactivex.rxjava2:rxjava:${RXJAVA_VERSION}"
     implementation "io.reactivex.rxjava2:rxandroid:${RXANDROID_VERSION}"
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
+
     kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
     implementation 'androidx.media:media:1.6.0'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${SERIALIZATON_VERSION}"
 
+    testImplementation files('../libs/exoplayer-core-release.aar')
     testImplementation "org.robolectric:robolectric:4.9.2"
     testImplementation 'junit:junit:4.13.2'
     testImplementation("org.assertj:assertj-core:3.10.0")
