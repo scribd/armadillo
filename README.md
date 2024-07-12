@@ -42,6 +42,8 @@ The library is hosted with Github packages so you will need to add the Github re
 
 1. Generate a personal access token from your Github account.
 2. Add the Github package registry with authentication to your `build.gradle` file.
+3. For Armadillo version 1.4.1: Add a gradle dependency for com.google.android.exoplayer:exoplayer-core:2.19.1. If you wish to use 
+   downloading in Android 14 you will need to use a forked version of this dependency since Exoplayer does not support Android 14.
 
 ```kotlin
 maven {

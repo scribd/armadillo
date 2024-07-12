@@ -1,5 +1,10 @@
 # Project Armadillo Release Notes
 
+## 1.4.1
+- Fixes Download Service issues on Android 14. 
+- Removes the Exoplayer 2.19.1 `core` module that does not support Android 14. This module must now be included separately by your 
+  project for this version.
+
 ## 1.4.0
 - Targets Android 14 (SDK 34), with appropriate service permissions.
 

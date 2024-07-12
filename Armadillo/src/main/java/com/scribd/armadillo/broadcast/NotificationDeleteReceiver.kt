@@ -57,6 +57,7 @@ internal class ArmadilloNotificationDeleteReceiver(val application: Application)
      */
     override fun setDeleteIntentOnNotification(notification: Notification) {
         val intent = Intent(ArmadilloNotificationDeleteReceiver.ACTION)
+        intent.`package` = application.packageName
         val intentFlag = if (hasSnowCone()) PendingIntent.FLAG_MUTABLE else 0
         val pendingIntent = PendingIntent.getBroadcast(application, 0, intent, intentFlag)
         notification.deleteIntent = pendingIntent
