@@ -49,5 +49,5 @@ internal class ArmadilloStateStore(private val reducer: Reducer) :
         get() = armadilloStateObservable
 
     override val currentState: ArmadilloState
-        get() = armadilloStateObservable.value ?: throw MissingDataException("armadilloState should never be null")
+        get() = armadilloStateObservable.value ?: throw MissingDataException("Armadillo's State should never be null")
 }

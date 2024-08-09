@@ -282,7 +282,7 @@ internal object Reducer {
     private fun checkBounds(timeToCheck: () -> Interval<Millisecond>): ArmadilloException? {
         return if (maxDurationDiscrepancy >= 0 && timeToCheck.invoke().inSeconds.longValue > maxDurationDiscrepancy) {
             Log.e(TAG, "Content metadata is incorrect")
-            IncorrectChapterMetadataException
+            IncorrectChapterMetadataException()
         } else {
             null
         }

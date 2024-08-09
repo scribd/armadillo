@@ -227,7 +227,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
     private inner class PlaybackServiceManager : ServiceManager {
         override fun startService(audiobook: AudioPlayable, currentChapterIndex: Int) {
-            val token = sessionToken ?: throw MissingDataException("token should not be null")
+            val token = sessionToken ?: throw MissingDataException("The session's token is missing. Can't begin service.")
             if (!isInForeground) {
                 ContextCompat.startForegroundService(
                     this@PlaybackService,
@@ -241,7 +241,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         }
 
         override fun updateNotificationForPause(audiobook: AudioPlayable, currentChapterIndex: Int) {
-            val token = sessionToken ?: throw MissingDataException("token should not be null")
+            val token = sessionToken ?: throw MissingDataException("The session's token is missing. Cannot pause the notification.")
             stopForeground(false)
             val notification = playbackNotificationManager.getNotification(audiobook, currentChapterIndex, false, token)
             notificationDeleteReceiver.setDeleteIntentOnNotification(notification)

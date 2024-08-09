@@ -241,7 +241,7 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
 
     override fun beginDownload(audioPlayable: AudioPlayable) {
         if (!isDownloadEngineInit) {
-            stateModifier.dispatch(ErrorAction(EngineNotInitialized("download engine not init")))
+            stateModifier.dispatch(ErrorAction(EngineNotInitialized("download engine cannot start download.")))
             return
         }
         downloadEngine.download(audioPlayable)
@@ -253,7 +253,7 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
 
     override fun removeAllDownloads() {
         if (!isDownloadEngineInit) {
-            stateModifier.dispatch(ErrorAction(EngineNotInitialized("download engine not init")))
+            stateModifier.dispatch(ErrorAction(EngineNotInitialized("Cannot remove all the downloads.")))
             return
         }
         downloadEngine.removeAllDownloads()
@@ -308,7 +308,10 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
                 PlaybackState.PLAYING -> controls.pause()
                 PlaybackState.PAUSED -> controls.play()
                 else -> {
-                    stateModifier.dispatch(ErrorAction(UnexpectedException("Unknown state: $playbackState")))
+                    stateModifier.dispatch(ErrorAction(
+                        UnexpectedException(cause = IllegalStateException("Neither playing nor paused"),
+                            actionThatFailedMessage = "Trying to play or pause media."))
+                    )
                 }
             }
         }
@@ -333,7 +336,10 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
     override fun seekWithinChapter(percent: Int) {
         val position = stateProvider.currentState.positionFromChapterPercent(percent)
             ?: run {
-                stateModifier.dispatch(ErrorAction(UnexpectedException("No audiobook playing")))
+                stateModifier.dispatch(ErrorAction(
+                    UnexpectedException(cause = KotlinNullPointerException("Current state's position is null"),
+                        actionThatFailedMessage = "seeking within chapter"))
+                )
                 return
             }
         seekTo(position)
@@ -341,7 +347,7 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
 
     override fun removeDownload(audioPlayable: AudioPlayable) {
         if (!isDownloadEngineInit) {
-            stateModifier.dispatch(ErrorAction(EngineNotInitialized("DownloadEngine")))
+            stateModifier.dispatch(ErrorAction(EngineNotInitialized("Cannot remove a download.")))
             return
         }
         downloadEngine.removeDownload(audioPlayable)
@@ -412,18 +418,16 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
             lambda.invoke(controls, playbackState)
         } else {
             val error = if (controls == null) {
-                Log.e(TAG, "transportControls null")
-                TransportControlsNull
+                Log.e(TAG, "The transport controls are null. Are the controls initialized?")
+                TransportControlsNull()
             } else if (playbackState == null) {
-                Log.e(TAG, "playbackState is null")
-                NoPlaybackInfo
+                Log.e(TAG, "The playbackState is null.")
+                NoPlaybackInfo()
             } else if (PlaybackState.NONE == playbackState) {
-                Log.e(TAG, "playbackState == PlaybackState.NONE")
-                InvalidPlaybackState
-            } else if (!playbackReady) {
-                EngineNotInitialized("isPlaybackEngineReady == false")
+                Log.e(TAG, "There is no playback State.")
+                InvalidPlaybackState()
             } else {
-                UnexpectedException("unknown error in $TAG.doIfPlaybackReady")
+                EngineNotInitialized("Playback is not ready.")
             }
 
             stateModifier.dispatch(ErrorAction(error))

@@ -17,6 +17,7 @@ import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.download.drm.OfflineDrmManager
 import com.scribd.armadillo.error.ArmadilloException
+import com.scribd.armadillo.error.ArmadilloIOException
 import com.scribd.armadillo.error.DownloadServiceLaunchedInBackground
 import com.scribd.armadillo.error.UnexpectedDownloadException
 import com.scribd.armadillo.extensions.encodeInByteArray
@@ -80,15 +81,15 @@ internal class ExoplayerDownloadEngine @Inject constructor(
                             startDownload(context, request)
                         } catch (e: Exception) {
                             if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
-                                stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audioPlayable.id)))
+                                stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audioPlayable.id, e)))
                             } else {
-                                stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
+                                stateModifier.dispatch(ErrorAction(ArmadilloIOException(cause = e, whatActionFailedMessage = "Can't prepare download.")))
                             }
                         }
                     }
 
                     override fun onPrepareError(helper: DownloadHelper, e: IOException) =
-                        stateModifier.dispatch(ErrorAction(com.scribd.armadillo.error.ArmadilloIOException(e)))
+                        stateModifier.dispatch(ErrorAction(ArmadilloIOException(cause = e, whatActionFailedMessage = "Can't report download error.")))
                 })
             }
         }

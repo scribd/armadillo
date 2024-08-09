@@ -2,84 +2,103 @@ package com.scribd.armadillo.error
 
 import com.scribd.armadillo.actions.Action
 
-sealed class ArmadilloException(exception: Exception) : Exception(exception) {
+sealed class ArmadilloException(cause: Throwable? = null,
+                                message: String = "Unhandled Armadillo Error")
+    : Exception(message, cause) {
     abstract val errorCode: Int
 }
 
 /**
  * Errors in Armadillo
  */
-data class EngineNotInitialized(val reason: String) : ArmadilloException(exception = Exception(reason)) {
+class EngineNotInitialized(message: String)
+    : ArmadilloException(message = "Armadillo Engine is not initialized: $message") {
     override val errorCode = 100
 }
 
-object TransportControlsNull : ArmadilloException(Exception()) {
+class TransportControlsNull
+    : ArmadilloException(message = "Internal error, the transport controls are null. Are the controls being initialized?") {
     override val errorCode = 101
 }
 
-data class MissingDataException(val reason: String) : ArmadilloException(exception = Exception(reason)) {
+class MissingDataException(message: String)
+    : ArmadilloException(message = "Internal error, unexpectedly missing internal data: $message") {
     override val errorCode = 102
 }
 
-data class ActionBeforeSetup(val action: Action) : ArmadilloException(exception = Exception(action.name)) {
+data class ActionBeforeSetup(val action: Action)
+    : ArmadilloException(message = "Internal Error, using an Action before setup is finished: ${action.name}") {
     override val errorCode = 103
 }
 
-data class UnrecognizedAction(val action: Action) : ArmadilloException(exception = Exception(action.name)) {
+data class UnrecognizedAction(val action: Action)
+    : ArmadilloException(message = "Internal error, unknown action being taken: ${action.name}") {
     override val errorCode = 104
 }
 
-object NoPlaybackInfo : ArmadilloException(Exception()) {
+class NoPlaybackInfo : ArmadilloException(message = "Internal error, playback info is missing. Is the player initialized?") {
     override val errorCode = 105
 }
 
-object InvalidPlaybackState : ArmadilloException(Exception()) {
+class InvalidPlaybackState
+    : ArmadilloException(message = "Internal Error, playback state is missing. Has the player been initialized or destroyed?") {
     override val errorCode = 106
 }
 
-data class InvalidRequest(val reason: String) : ArmadilloException(exception = Exception(reason)) {
+class InvalidRequest(message: String)
+    : ArmadilloException(message = "Internal Error, certain media requests cannot be taken: $message") {
     override val errorCode: Int = 107
 }
 
 /**
  * Playback Errors
  */
-data class HttpResponseCodeException(val responseCode: Int, val url: String?, val exception: Exception) : ArmadilloException(exception) {
+data class HttpResponseCodeException(val responseCode: Int, val url: String?, override val cause: Exception)
+    : ArmadilloException(cause = cause, message = "HTTP Error $responseCode.") {
     override val errorCode: Int = 200
 }
 
-data class ArmadilloIOException(val exception: Exception) : ArmadilloException(exception) {
+class ArmadilloIOException(cause: Exception, whatActionFailedMessage: String)
+    : ArmadilloException(cause = cause, message = "A critical playback issue occurred: $whatActionFailedMessage") {
     override val errorCode = 201
 }
 
-data class UpdateProgressFailureException(val exception: Exception) : ArmadilloException(exception) {
+class UpdateProgressFailureException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "Progress failed to update suddenly during playback. Download progress or playback " +
+    "progress may not be reporting correctly.") {
     override val errorCode = 202
 }
 
-data class PlaybackStartFailureException(val exception: Exception) : ArmadilloException(exception) {
+class PlaybackStartFailureException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "The player is initialized, but it failed to begin.") {
     override val errorCode = 203
 }
 
-data class ActionListenerException(val exception: Exception) : ArmadilloException(exception) {
+class ActionListenerException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "A problem occurred processing state updates.") {
     override val errorCode = 204
 }
 
-object IncorrectChapterMetadataException : ArmadilloException(Exception()) {
+class IncorrectChapterMetadataException
+    : ArmadilloException(message = "The metadata for chapter durations are wrong and cannot be used for this content.") {
     override val errorCode = 205
 }
 
 /**
  * Download Errors
  */
-data class MissingInfoDownloadException(val reason: String) : ArmadilloException(exception = Exception(reason)) {
+class MissingInfoDownloadException(message: String)
+    : ArmadilloException(message = "Download info is missing: $message") {
     override val errorCode = 301
 }
 
-object DownloadFailed : ArmadilloException(Exception()) {
+class DownloadFailed
+    : ArmadilloException(message = "The download has failed to finish.") {
     override val errorCode = 302
 }
 
-object UnableToLoadDownloadInfo : ArmadilloException(Exception()) {
+class UnableToLoadDownloadInfo
+    : ArmadilloException(message = "Failed to load download metadata, queued downloads may fail to resume.") {
     override val errorCode = 303
 }
 
@@ -89,25 +108,28 @@ object UnableToLoadDownloadInfo : ArmadilloException(Exception()) {
  * the background before DownloadService.sendAddDownload
  */
 
-data class DownloadServiceLaunchedInBackground(val id: Int) : ArmadilloException(Exception()) {
+data class DownloadServiceLaunchedInBackground(val id: Int, override val cause: Exception)
+    : ArmadilloException(cause = cause,
+    message = "Android 12 compliance problem: ${cause.message}") {
     override val errorCode = 304
 }
 
-data class UnexpectedDownloadException(val throwable: Throwable): ArmadilloException(exception = Exception(throwable)){
+class UnexpectedDownloadException(throwable: Throwable)
+    : ArmadilloException(cause = throwable, message = "Unknown problem while downloading."){
     override val errorCode = 305
 }
 
 /**
  * Misc Errors
  */
-data class UnexpectedException(val exception: Exception) : ArmadilloException(exception) {
-    constructor(reason: String) : this(Exception(reason))
-
+class UnexpectedException(cause: Exception, actionThatFailedMessage: String)
+    : ArmadilloException(cause = cause, message = "Unanticipated error: $actionThatFailedMessage.") {
     override val errorCode = 400
 }
 
 /** Media Browse Errors */
-data class BadMediaHierarchyException(val reason: String) : ArmadilloException(exception = Exception(reason)) {
+class BadMediaHierarchyException(cause: Exception?, message: String)
+    : ArmadilloException(cause = cause, message = message) {
     override val errorCode: Int = 501
 }
 
@@ -115,19 +137,23 @@ data class BadMediaHierarchyException(val reason: String) : ArmadilloException(e
  * Audio Renderer Errors
  */
 
-data class RendererConfigurationException(val exception: Exception) : ArmadilloException(exception) {
+class RendererConfigurationException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "The audio data buffer (AudioSink) has been misconfigured.") {
     override val errorCode: Int = 601
 }
 
-data class RendererInitializationException(val exception: Exception) : ArmadilloException(exception) {
+class RendererInitializationException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "The audio data buffer (AudioSink) isn't initialized.") {
     override val errorCode: Int = 602
 }
 
-data class RendererWriteException(val exception: Exception) : ArmadilloException(exception) {
+class RendererWriteException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "Cannot write data into the audio data buffer (AudioSink).") {
     override val errorCode: Int = 603
 }
 
-data class UnknownRendererException(val exception: Exception) : ArmadilloException(exception) {
+class UnknownRendererException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "Unknown problem with the audio data buffer (AudioSink).") {
     override val errorCode: Int = 604
 }
 
@@ -135,15 +161,18 @@ data class UnknownRendererException(val exception: Exception) : ArmadilloExcepti
  * DRM errors
  */
 
-data class DrmContentTypeUnsupportedException(val contentType: Int) : ArmadilloException(exception = Exception()) {
+data class DrmContentTypeUnsupportedException(val contentType: Int)
+    : ArmadilloException(message = "This DRM content type is not yet supported. Please consider opening a pull request.") {
     override val errorCode = 700
 }
 
-data class DrmDownloadException(val exception: Exception) : ArmadilloException(exception) {
+class DrmDownloadException(cause: Exception)
+    : ArmadilloException(cause = cause, "Failed to process DRM license for downloading.") {
     override val errorCode = 701
 }
 
-data class DrmPlaybackException(val exception: Exception) : ArmadilloException(exception) {
+class DrmPlaybackException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "Cannot play DRM content.") {
     override val errorCode = 702
 }
 

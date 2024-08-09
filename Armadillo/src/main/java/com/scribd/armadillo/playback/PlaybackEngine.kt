@@ -109,7 +109,7 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
 
     private val currentChapter: Chapter
         get() = audioPlayable.getChapterAtOffset(exoPlayer.currentPositionInDuration())
-            ?: throw MissingDataException("currentChapter null")
+            ?: throw MissingDataException("The current chapter is missing.")
 
     override var offloadAudio: Boolean = false
         set(value) {
