@@ -83,13 +83,13 @@ internal class ExoplayerDownloadEngine @Inject constructor(
                             if (hasSnowCone() && e is ForegroundServiceStartNotAllowedException) {
                                 stateModifier.dispatch(ErrorAction(DownloadServiceLaunchedInBackground(audioPlayable.id, e)))
                             } else {
-                                stateModifier.dispatch(ErrorAction(ArmadilloIOException(cause = e, whatActionFailedMessage = "Can't prepare download.")))
+                                stateModifier.dispatch(ErrorAction(ArmadilloIOException(cause = e, actionThatFailedMessage = "Can't prepare download.")))
                             }
                         }
                     }
 
                     override fun onPrepareError(helper: DownloadHelper, e: IOException) =
-                        stateModifier.dispatch(ErrorAction(ArmadilloIOException(cause = e, whatActionFailedMessage = "Can't report download error.")))
+                        stateModifier.dispatch(ErrorAction(ArmadilloIOException(cause = e, actionThatFailedMessage = "Can't report download error.")))
                 })
             }
         }

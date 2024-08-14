@@ -58,8 +58,8 @@ data class HttpResponseCodeException(val responseCode: Int, val url: String?, ov
     override val errorCode: Int = 200
 }
 
-class ArmadilloIOException(cause: Exception, whatActionFailedMessage: String)
-    : ArmadilloException(cause = cause, message = "A critical playback issue occurred: $whatActionFailedMessage") {
+class ArmadilloIOException(cause: Exception, actionThatFailedMessage: String)
+    : ArmadilloException(cause = cause, message = "A critical playback issue occurred: $actionThatFailedMessage") {
     override val errorCode = 201
 }
 
