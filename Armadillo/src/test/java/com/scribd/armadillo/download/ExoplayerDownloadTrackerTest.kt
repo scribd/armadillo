@@ -6,13 +6,15 @@ import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.actions.StopTrackingDownloadAction
 import com.scribd.armadillo.actions.UpdateDownloadAction
-import com.scribd.armadillo.error.DownloadFailed
 import com.scribd.armadillo.models.DownloadProgressInfo
 import com.scribd.armadillo.models.DownloadState
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
@@ -46,8 +48,9 @@ class ExoplayerDownloadTrackerTest {
         downloadInfo = DownloadProgressInfo(ID, URL, DownloadState.FAILED)
         exoplayerDownloadTracker.dispatchActionsForProgress(downloadInfo)
         verify(stateModifier).dispatch(UpdateDownloadAction(downloadInfo))
-        verify(stateModifier).dispatch(ErrorAction(DownloadFailed))
+        verify(stateModifier).dispatch(isA<ErrorAction>())
         verify(stateModifier).dispatch(StopTrackingDownloadAction(downloadInfo))
+        verify(stateModifier, times(3)).dispatch(any())
         verifyNoMoreInteractions(stateModifier)
     }
 

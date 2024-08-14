@@ -31,7 +31,8 @@ data class ArmadilloState(
             return null
         }
         if (percent > 100 || percent < 0) {
-            throw UnexpectedException(Exception("Invalid argument: $percent"))
+            throw UnexpectedException(cause = IllegalArgumentException("Invalid argument: $percent"),
+                actionThatFailedMessage = "Calculating seekbar progress from percentage.")
         }
         val currentChapter = playbackInfo.audioPlayable.chapters[playbackInfo.progress.currentChapterIndex]
         val decimal = percent / 100.toDouble()

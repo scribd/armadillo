@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.5
+- Fixes Error and Exception handling to not hide underlying exceptions, and to clearly explain the nature of errors.
+
 ## 1.4.1
 - Fixes Download Service issues on Android 14. 
 - Removes the Exoplayer 2.19.1 `core` module that does not support Android 14. This module must now be included separately by your 

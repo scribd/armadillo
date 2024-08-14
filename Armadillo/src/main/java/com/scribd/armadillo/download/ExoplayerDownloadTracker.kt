@@ -96,7 +96,7 @@ internal class ExoplayerDownloadTracker @Inject constructor(
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to load downloads", e)
                 withContext(Dispatchers.Main) {
-                    stateModifier.dispatch(ErrorAction(UnableToLoadDownloadInfo))
+                    stateModifier.dispatch(ErrorAction(UnableToLoadDownloadInfo()))
                 }
             }
         }
@@ -166,7 +166,7 @@ internal class ExoplayerDownloadTracker @Inject constructor(
         }
 
         if (taskFailed) {
-            actions.add(ErrorAction(DownloadFailed))
+            actions.add(ErrorAction(DownloadFailed()))
         }
 
         actions.forEach {

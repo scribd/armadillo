@@ -27,7 +27,7 @@ internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
                 is SocketTimeoutException -> HttpResponseCodeException(0, null, source)
                 is UnknownHostException ->
                     HttpResponseCodeException(0, source.message, source) // Message is supposed to be the host for UnknownHostException
-                else -> ArmadilloIOException(this)
+                else -> ArmadilloIOException(cause = this, actionThatFailedMessage = "Exoplayer error.")
             }
         }
     } else if (TYPE_RENDERER == type) {
@@ -40,6 +40,6 @@ internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
             }
         }
     } else {
-        UnexpectedException(this)
+        UnexpectedException(cause = this, actionThatFailedMessage = "Exoplayer error")
     }
 }

@@ -48,7 +48,7 @@ internal class MediaSessionConnection(
          * completed.
          */
         override fun onConnected() {
-            val mediaBrowserCompat = mediaBrowser ?: throw MissingDataException("media browser should be init")
+            val mediaBrowserCompat = mediaBrowser ?: throw MissingDataException("Media Browser needs to be initialized.")
             val mediaControllerCompat = MediaControllerCompat(context, mediaBrowserCompat.sessionToken)
             mediaController = mediaControllerCompat
             connectionListener.onConnectionCallback(mediaControllerCompat.transportControls)
