@@ -1,7 +1,6 @@
 package com.scribd.armadillo.analytics
 
 import android.app.ForegroundServiceStartNotAllowedException
-import android.os.Build
 import androidx.annotation.VisibleForTesting
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Milliseconds
@@ -11,6 +10,7 @@ import com.scribd.armadillo.error.ActionListenerException
 import com.scribd.armadillo.hasSnowCone
 import com.scribd.armadillo.models.ArmadilloState
 import com.scribd.armadillo.models.AudioPlayable
+import com.scribd.armadillo.models.DrmState
 import com.scribd.armadillo.models.InternalState
 import com.scribd.armadillo.models.PlaybackState
 import com.scribd.armadillo.time.milliseconds
@@ -34,7 +34,12 @@ internal class PlaybackActionTransmitterImpl(private val stateProvider: StateSto
     private var disposables = CompositeDisposable()
 
     private var seekStartState: ArmadilloState? = null
-    private var currentState: ArmadilloState = ArmadilloState(null, emptyList(), InternalState(), null)
+    private var currentState: ArmadilloState = ArmadilloState(
+        playbackInfo = null,
+        downloadInfo = emptyList(),
+        drmPlaybackState = DrmState.NoDRM,
+        internalState =  InternalState(),
+        error =  null)
     private var lastState: ArmadilloState = currentState
     private var pollingIntervalMillis: Milliseconds = 500.milliseconds
 
@@ -78,7 +83,12 @@ internal class PlaybackActionTransmitterImpl(private val stateProvider: StateSto
 
     override fun destroy() {
         disposables.clear()
-        currentState = ArmadilloState(null, emptyList(), InternalState(), null)
+        currentState = ArmadilloState(
+            playbackInfo = null,
+            downloadInfo = emptyList(),
+            drmPlaybackState = DrmState.NoDRM,
+            internalState = InternalState(),
+            error = null)
         lastState = currentState
         seekStartState = null
     }
@@ -116,7 +126,12 @@ internal class PlaybackActionTransmitterImpl(private val stateProvider: StateSto
         if (current.playbackInfo?.controlState?.isStopping == true && lastState.playbackInfo?.controlState?.isStopping == false) {
             actionListeners.dispatch { listener, state -> listener.onStop(state) }
             playbackStateListener?.onPlaybackEnd()
-            stateToRetainForLast = ArmadilloState(null, emptyList(), InternalState(), null)
+            stateToRetainForLast = ArmadilloState(
+                playbackInfo = null,
+                downloadInfo = emptyList(),
+                drmPlaybackState = DrmState.NoDRM,
+                internalState = InternalState(),
+                error = null)
             seekStartState = null
         }
 

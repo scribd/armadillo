@@ -6,6 +6,13 @@
     <string name="arm_position_duration">%1$s / %2$s (%3$s)</string>
     <string name="arm_duration_unknown">Unknown</string>
     <string name="arm_playback_speed">Playback Speed: %.1f</string>
+    <string name="arm_drm_none">No DRM</string>
+    <string name="arm_drm_opening">DRM Opening</string>
+    <string name="arm_drm_released">DRM Released</string>
+    <string name="arm_drm_error">DRM Error</string>
+    <string name="arm_drm_expired">DRM Expired</string>
+    <string name="arm_drm_using"> Using DRM: </string>
+    <string name="arm_drm_expiring"> expiring: </string>
 
     <!-- Download Strings -->
     <skip/>

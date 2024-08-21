@@ -33,7 +33,7 @@ internal class AppModule(private val context: Context) {
     @Singleton
     @PrivateModule
     @Provides
-    fun stateStore(reducer: Reducer): ArmadilloStateStore = ArmadilloStateStore(reducer)
+    fun stateStore(reducer: Reducer): ArmadilloStateStore = ArmadilloStateStore(reducer, context)
 
     @Singleton
     @Provides

@@ -70,7 +70,7 @@ interface ArmadilloPlayer {
     fun beginPlayback(audioPlayable: AudioPlayable, config: ArmadilloConfiguration = ArmadilloConfiguration())
 
     /**
-     * Provide new media request data to the currently playing content.
+     * Provide new media request data to the currently playing content, such as request headers or DRM updates.
      * It is an error to call this with a different URL from the currently playing media.
      * It is also an error to call this when no content is currently loaded.
      * If you want to start playback from a new URL, use [beginPlayback].

@@ -4,6 +4,7 @@ import com.scribd.armadillo.analytics.PlaybackActionTransmitterImpl
 import com.scribd.armadillo.di.Injector
 import com.scribd.armadillo.di.MainComponent
 import com.scribd.armadillo.download.DefaultExoplayerDownloadService
+import com.scribd.armadillo.download.drm.events.WidevineSessionEventListener
 import com.scribd.armadillo.playback.ExoplayerPlaybackEngine
 import com.scribd.armadillo.playback.MediaSessionCallback
 import com.scribd.armadillo.playback.PlaybackService
@@ -31,6 +32,7 @@ class DaggerComponentRule : TestRule {
     private class MockMainComponent : MainComponent {
         override fun inject(playbackActionTransmitterImpl: PlaybackActionTransmitterImpl) = Unit
         override fun inject(mediaSourceRetrieverImpl: MediaSourceRetrieverImpl) = Unit
+        override fun inject(widevineSessionEventListener: WidevineSessionEventListener) = Unit
         override fun inject(exoplayerPlaybackEngine: ExoplayerPlaybackEngine) = Unit
         override fun inject(mediaSessionCallback: MediaSessionCallback) = Unit
         override fun inject(armadilloPlayerChoreographer: ArmadilloPlayerChoreographer) = Unit

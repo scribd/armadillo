@@ -102,4 +102,13 @@
         android:textColor="@android:color/black"
         tools:text="UpdateAction, Random Action"/>
 
+    <TextView
+        android:id="@+id/drmStatusTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@android:color/black"
+        tools:text="No DRM"/>
+
 </LinearLayout>

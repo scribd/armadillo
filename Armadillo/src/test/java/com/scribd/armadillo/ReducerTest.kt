@@ -3,9 +3,15 @@ package com.scribd.armadillo
 import com.scribd.armadillo.actions.Action
 import com.scribd.armadillo.actions.ContentEndedAction
 import com.scribd.armadillo.actions.FastForwardAction
+import com.scribd.armadillo.actions.LicenseAcquiredAction
+import com.scribd.armadillo.actions.LicenseDrmErrorAction
+import com.scribd.armadillo.actions.LicenseExpirationDetermined
+import com.scribd.armadillo.actions.LicenseKeyIsUsableAction
+import com.scribd.armadillo.actions.LicenseReleasedAction
 import com.scribd.armadillo.actions.MediaRequestUpdateAction
 import com.scribd.armadillo.actions.MetadataUpdateAction
 import com.scribd.armadillo.actions.NewAudioPlayableAction
+import com.scribd.armadillo.actions.OpeningLicenseAction
 import com.scribd.armadillo.actions.PlaybackSpeedAction
 import com.scribd.armadillo.actions.PlayerStateAction
 import com.scribd.armadillo.actions.RewindAction
@@ -21,6 +27,8 @@ import com.scribd.armadillo.models.ArmadilloState
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.models.DownloadState
+import com.scribd.armadillo.models.DrmState
+import com.scribd.armadillo.models.DrmType
 import com.scribd.armadillo.models.InternalState
 import com.scribd.armadillo.models.PlaybackProgress
 import com.scribd.armadillo.models.PlaybackState
@@ -77,6 +85,7 @@ class ReducerTest {
         assertThat(newPlaybackInfo.isLoading).isTrue
         assertThat(newPlaybackInfo.controlState.isStartingNewAudioPlayable).isTrue
         assertThat(newPlaybackInfo.controlState.isStopping).isFalse
+        assertThat(newState.drmPlaybackState).isEqualTo(DrmState.NoDRM)
     }
 
     @Test
@@ -326,8 +335,53 @@ class ReducerTest {
     }
 
     @Test
+    fun reduce_drmLicenseOpening_updatesDrmState() {
+        val appState = Reducer.reduce(MockModels.appState(), OpeningLicenseAction(DrmType.WIDEVINE))
+        assertThat(appState.drmPlaybackState).isInstanceOf(DrmState.LicenseOpening::class.java)
+        assertThat(appState.drmPlaybackState.drmType).isEqualTo(DrmType.WIDEVINE)
+    }
+
+    @Test
+    fun reduce_drmLicenseAcquired_updatesDrmState() {
+        val appState = Reducer.reduce(MockModels.appState(), LicenseAcquiredAction(DrmType.WIDEVINE))
+        assertThat(appState.drmPlaybackState).isInstanceOf(DrmState.LicenseAcquired::class.java)
+        assertThat(appState.drmPlaybackState.drmType).isEqualTo(DrmType.WIDEVINE)
+    }
+
+    @Test
+    fun reduce_drmLicenseUsable_updatesDrmState() {
+        val appState = Reducer.reduce(MockModels.appState(), LicenseKeyIsUsableAction)
+        assertThat(appState.drmPlaybackState).isInstanceOf(DrmState.LicenseUsable::class.java)
+    }
+
+    @Test
+    fun reduce_drmLicenseExpirationGet_updatesDrmState() {
+        val expires = 8.milliseconds
+        val appState = Reducer.reduce(MockModels.appState(), LicenseExpirationDetermined(expires))
+        assertThat(appState.drmPlaybackState).isInstanceOf(DrmState.LicenseUsable::class.java)
+        assertThat(appState.drmPlaybackState.expireMillis).isEqualTo(expires)
+    }
+
+    @Test
+    fun reduce_drmLicenseError_updatesDrmState() {
+        val appState = Reducer.reduce(MockModels.appState(), LicenseDrmErrorAction)
+        assertThat(appState.drmPlaybackState).isInstanceOf(DrmState.LicenseError::class.java)
+    }
+
+    @Test
+    fun reduce_drmLicenseReleased_updatesDrmState() {
+        val appState = Reducer.reduce(MockModels.appState(), LicenseReleasedAction)
+        assertThat(appState.drmPlaybackState).isInstanceOf(DrmState.LicenseReleased::class.java)
+    }
+
+    @Test
     fun reduce_mediaRequestUpdateActionNotReady_error() {
-        val oldState = ArmadilloState(null, emptyList(), InternalState(false), null)
+        val oldState = ArmadilloState(
+            playbackInfo = null,
+            downloadInfo = emptyList(),
+            drmPlaybackState = DrmState.NoDRM,
+            internalState = InternalState(false),
+            error = null)
         val action = MediaRequestUpdateAction(AudioPlayable.MediaRequest.createHttpUri(
             "https://www.github.com/scribd/armadillo"
         ))

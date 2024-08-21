@@ -11,6 +11,7 @@ import android.widget.TextView
 import com.scribd.armadillo.models.ArmadilloState
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.DownloadState
+import com.scribd.armadillo.models.DrmState
 import java.util.concurrent.TimeUnit
 
 /**
@@ -43,6 +44,7 @@ class ArmadilloDebugView : FrameLayout {
     private val playbackSpeedTv: TextView by lazy { findViewById<TextView>(R.id.playbackSpeedTv) }
     private val downloadStateTv: TextView by lazy { findViewById<TextView>(R.id.downloadStateTv) }
     private val downloadPercentTv: TextView by lazy { findViewById<TextView>(R.id.downloadPercentTv) }
+    private val drmStatusTv: TextView by lazy { findViewById(R.id.drmStatusTv) }
 
     fun update(state: ArmadilloState, audioPlayable: AudioPlayable) {
         val activity = context as Activity
@@ -50,6 +52,20 @@ class ArmadilloDebugView : FrameLayout {
         val appStateCountText = activity.getString(R.string.arm_state_update_count, state.debugState.appStateUpdateCount)
         appStateUpdateCountTv.text = appStateCountText
         actionsDispatchedTv.text = state.debugState.getActionHistoryDisplayString()
+
+        drmStatusTv.text = when (state.drmPlaybackState) {
+            is DrmState.NoDRM -> context.getString(R.string.arm_drm_none)
+            is DrmState.LicenseOpening -> context.getString(R.string.arm_drm_opening)
+            is DrmState.LicenseReleased -> context.getString(R.string.arm_drm_released)
+            is DrmState.LicenseExpired -> context.getString(R.string.arm_drm_expired)
+            is DrmState.LicenseError -> context.getString(R.string.arm_drm_error)
+            is DrmState.LicenseAcquired,
+            is DrmState.LicenseUsable -> {
+                "${context.getString(R.string.arm_drm_using)} ${state.drmPlaybackState.drmType.toString()} : ${context.getString(R.string
+                    .arm_drm_expiring)} " +
+                    "${state.drmPlaybackState.expireMillis}"
+            }
+        }
 
         val playbackInfo = state.playbackInfo
         if (playbackInfo != null) {
