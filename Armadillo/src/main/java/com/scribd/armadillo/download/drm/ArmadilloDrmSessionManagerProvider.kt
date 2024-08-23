@@ -1,7 +1,6 @@
 package com.scribd.armadillo.download.drm
 
 import android.media.MediaDrm
-import android.util.Log
 import androidx.annotation.GuardedBy
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.MediaItem.DrmConfiguration
@@ -15,7 +14,6 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Assertions
 import com.google.android.exoplayer2.util.Util
-import com.google.common.collect.UnmodifiableIterator
 import com.google.common.primitives.Ints
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.LicenseDrmErrorAction
@@ -73,11 +71,10 @@ internal class ArmadilloDrmSessionManagerProvider @Inject constructor(private va
     private fun createManager(drmConfiguration: DrmConfiguration): DrmSessionManager {
         val dataSourceFactory = this.drmHttpDataSourceFactory
             ?: DefaultHttpDataSource.Factory().setUserAgent(this.userAgent)
-        val httpDrmCallback = HttpMediaDrmCallback(if (drmConfiguration.licenseUri == null) null else drmConfiguration.licenseUri.toString(), drmConfiguration.forceDefaultLicenseUri, (dataSourceFactory)!!)
-        val var4: UnmodifiableIterator<*> = drmConfiguration.licenseRequestHeaders.entries.iterator()
+        val license = if (drmConfiguration.licenseUri == null) null else  drmConfiguration.licenseUri.toString()
+        val httpDrmCallback = HttpMediaDrmCallback(license, drmConfiguration.forceDefaultLicenseUri, dataSourceFactory)
 
-        while (var4.hasNext()) {
-            val entry: Map.Entry<String, String> = var4.next() as Map.Entry<String, String>
+        drmConfiguration.licenseRequestHeaders.entries.forEach { entry ->
             httpDrmCallback.setKeyRequestProperty(entry.key, entry.value)
         }
 
@@ -92,17 +89,16 @@ internal class ArmadilloDrmSessionManagerProvider @Inject constructor(private va
         return drmSessionManager
     }
 
-    /** New original provider for this class */
+    /** New original provider for this class to supply DRM events to the StateStore */
     class ArmadilloDrmProvider(private val stateStore: StateStore.Modifier) : ExoMediaDrm.Provider {
         private var drmExpirationMillis: Long? = null
         override fun acquireExoMediaDrm(uuid: UUID): ExoMediaDrm {
-            Log.i(TAG, "drm start")
             //uses the main MediaDrm object that this class uses originally, then after we add new listeners to it.
             val instance = FrameworkMediaDrm.newInstance(uuid)
 
             //ExoMediaDrm.OnEventListener doesn't do anything at all, so its not used
             if (Util.SDK_INT >= 23) {
-                instance.setOnKeyStatusChangeListener { exoMediaDrm, sessionId, keyStatuses, b ->
+                instance.setOnKeyStatusChangeListener { exoMediaDrm, sessionId, keyStatuses, hasNewUsableKey ->
                     keyStatuses.firstOrNull()?.let { keyStatus ->
                         //See MediaPlayer.onPlayerError() for playback-affecting errors. This block is more for transparency.
                         when(keyStatus.statusCode) {
@@ -125,7 +121,6 @@ internal class ArmadilloDrmSessionManagerProvider @Inject constructor(private va
                 }
                 //this listener often fires later than the above one
                 instance.setOnExpirationUpdateListener { exoMediaDrm, sessionId, expireMillis ->
-                    Log.i(TAG, "drm event key expires ${expireMillis}")
                     drmExpirationMillis = expireMillis
                     stateStore.dispatch(LicenseExpirationDetermined(expireMillis.milliseconds))
                 }

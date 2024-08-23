@@ -35,7 +35,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
         val dataSourceFactory = mediaSourceHelper.createDataSourceFactory(context, request)
 
         val download = downloadTracker.getDownload(request.url.toUri())
-        val isDownloaded = download != null && download.state != Download.STATE_FAILED
+        val isDownloaded = download != null && download.state == Download.STATE_COMPLETED
         val mediaItem = drmMediaSourceHelper.createMediaItem(context = context, request = request, isDownload = isDownloaded)
 
         return if (isDownloaded) {

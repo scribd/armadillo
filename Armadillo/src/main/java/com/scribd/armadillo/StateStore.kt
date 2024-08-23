@@ -1,6 +1,5 @@
 package com.scribd.armadillo
 
-import android.content.Context
 import android.os.Handler
 import com.scribd.armadillo.actions.Action
 import com.scribd.armadillo.actions.ClearErrorAction
@@ -27,8 +26,8 @@ internal interface StateStore {
     }
 }
 
-internal class ArmadilloStateStore(private val reducer: Reducer, private val appContext: Context) :
-        StateStore.Modifier, StateStore.Provider, StateStore.Initializer {
+internal class ArmadilloStateStore(private val reducer: Reducer, private val handler: Handler) :
+    StateStore.Modifier, StateStore.Provider, StateStore.Initializer {
 
     private companion object {
         const val TAG = "ArmadilloStateStore"
@@ -40,7 +39,7 @@ internal class ArmadilloStateStore(private val reducer: Reducer, private val app
 
     override fun dispatch(action: Action) {
         //run on consistent thread
-        Handler(appContext.mainLooper).post {
+        handler.post {
             val newAppState = reducer.reduce(currentState, action)
             armadilloStateObservable.onNext(newAppState)
 
