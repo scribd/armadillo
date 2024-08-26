@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.5.2 
+  Fixes "Failed to Bind Service" issue introduced in 1.4, affecting MediaBrowser services.
+
 ## 1.5.1
 - Adds DrmState to ArmadilloState, giving full visibility into DRM status to the client, including the expiration date for content.
 - Splits SocketTimeout from HttpResponseCodeException, into ConnectivityException to better differentiate connectivity difficulties from 
