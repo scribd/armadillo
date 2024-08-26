@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application>
 
@@ -15,7 +16,6 @@
             android:exported="true"
             android:stopWithTask="false"
             android:foregroundServiceType="mediaPlayback"
-            android:permission="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
             tools:ignore="ExportedService">
 
             <intent-filter>

@@ -103,6 +103,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Handle media buttons when OS is below API 21
+        Log.v(TAG, "onStartCommand: flags $flags")
         MediaButtonReceiver.handleIntent(mediaSession, intent)
         return super.onStartCommand(intent, flags, startId)
     }
@@ -126,6 +127,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
+        Log.v(TAG, "onLoadChildren from parentId $parentId")
         when (val authorizationStatus: ArmadilloMediaBrowse.Browser.AuthorizationStatus = mediaBrowser.checkAuthorization()) {
             is ArmadilloMediaBrowse.Browser.AuthorizationStatus.Authorized -> {
                 mediaBrowser.loadChildrenOf(parentId, result)
@@ -146,6 +148,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+        Log.v(TAG, "onGetRoot from $clientPackageName")
         val root = mediaBrowser.determineBrowserRoot(clientPackageName, clientUid, rootHints)
         if (root != null) {
             mediaBrowser.externalServiceListener = object : ArmadilloMediaBrowse.ExternalServiceListener {
@@ -227,6 +230,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
 
     private inner class PlaybackServiceManager : ServiceManager {
         override fun startService(audiobook: AudioPlayable, currentChapterIndex: Int) {
+            Log.v(TAG, "startService")
             val token = sessionToken ?: throw MissingDataException("The session's token is missing. Can't begin service.")
             if (!isInForeground) {
                 ContextCompat.startForegroundService(
@@ -241,6 +245,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
         }
 
         override fun updateNotificationForPause(audiobook: AudioPlayable, currentChapterIndex: Int) {
+            Log.v(TAG, "updateNotification")
             val token = sessionToken ?: throw MissingDataException("The session's token is missing. Cannot pause the notification.")
             stopForeground(false)
             val notification = playbackNotificationManager.getNotification(audiobook, currentChapterIndex, false, token)
@@ -249,11 +254,13 @@ class PlaybackService : MediaBrowserServiceCompat() {
         }
 
         override fun removeNotification() {
+            Log.v(TAG, "removeNotification")
             stopForeground(true)
             isNotificationShown = false
         }
 
         override fun stopService() {
+            Log.v(TAG, "stopService")
             onStopService()
         }
     }
@@ -265,6 +272,7 @@ class PlaybackService : MediaBrowserServiceCompat() {
      * here first. If so, we need to clear out the player
      */
     private fun onStopService(stopPlayer: Boolean = true) {
+        Log.v(TAG, "onStopService")
         playbackNotificationManager.notificationManager.cancel(notificationBuilder.notificationId)
         if (stopPlayer) {
             mediaSession.controller.transportControls.stop()
