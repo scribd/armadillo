@@ -1,8 +1,11 @@
 package com.scribd.armadillo.error
 
+import com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException
 import com.scribd.armadillo.actions.Action
+import java.net.SocketTimeoutException
 
 sealed class ArmadilloException(cause: Throwable? = null,
+                                isNetworkRelatedError: Boolean = false,
                                 message: String = "Unhandled Armadillo Error")
     : Exception(message, cause) {
     abstract val errorCode: Int
@@ -54,7 +57,7 @@ class InvalidRequest(message: String)
  * Playback Errors
  */
 data class HttpResponseCodeException(val responseCode: Int, val url: String?, override val cause: Exception)
-    : ArmadilloException(cause = cause, message = "HTTP Error $responseCode.") {
+    : ArmadilloException(cause = cause, message = "HTTP Error $responseCode.", isNetworkRelatedError = true) {
     override val errorCode: Int = 200
 }
 
@@ -84,6 +87,14 @@ class IncorrectChapterMetadataException
     override val errorCode = 205
 }
 
+class ConnectivityException(cause: Exception)
+    : ArmadilloException(
+    cause = cause,
+    message = "Internet connection to remote is not reliable.",
+    isNetworkRelatedError = true) {
+    override val errorCode: Int = 206
+}
+
 /**
  * Download Errors
  */
@@ -93,7 +104,7 @@ class MissingInfoDownloadException(message: String)
 }
 
 class DownloadFailed
-    : ArmadilloException(message = "The download has failed to finish.") {
+    : ArmadilloException(message = "The download has failed to finish.", isNetworkRelatedError = true) {
     override val errorCode = 302
 }
 
@@ -115,7 +126,7 @@ data class DownloadServiceLaunchedInBackground(val id: Int, override val cause: 
 }
 
 class UnexpectedDownloadException(throwable: Throwable)
-    : ArmadilloException(cause = throwable, message = "Unknown problem while downloading."){
+    : ArmadilloException(cause = throwable, message = "Unknown problem while downloading.", isNetworkRelatedError = throwable is HttpDataSourceException) {
     override val errorCode = 305
 }
 
@@ -167,7 +178,10 @@ data class DrmContentTypeUnsupportedException(val contentType: Int)
 }
 
 class DrmDownloadException(cause: Exception)
-    : ArmadilloException(cause = cause, "Failed to process DRM license for downloading.") {
+    : ArmadilloException(
+    cause = cause,
+    message = "Failed to process DRM license for downloading.",
+    isNetworkRelatedError = (cause is HttpDataSourceException) || (cause is SocketTimeoutException)) {
     override val errorCode = 701
 }
 

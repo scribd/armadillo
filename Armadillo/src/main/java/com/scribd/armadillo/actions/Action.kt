@@ -6,6 +6,7 @@ import com.scribd.armadillo.models.ArmadilloState
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.models.DownloadProgressInfo
+import com.scribd.armadillo.models.DrmType
 import com.scribd.armadillo.models.PlaybackState
 
 // Exoplayer State Updates
@@ -101,6 +102,36 @@ internal data class MediaRequestUpdateAction(val mediaRequest: AudioPlayable.Med
 
 internal object ContentEndedAction : Action {
     override val name = "ContentEndedAction"
+}
+
+internal data class OpeningLicenseAction(val type: DrmType?) : Action {
+    override val name: String = "OpeningLicenseAction"
+}
+
+internal data class LicenseAcquiredAction(val type: DrmType) : Action {
+    override val name = "LicenseAcquiredAction"
+}
+
+internal data class LicenseExpirationDetermined(val expirationMilliseconds: Milliseconds) : Action {
+    override val name: String
+        get() = "LicenseExpirationDetermined"
+}
+
+/** session can be recovering or resuming */
+internal object LicenseKeyIsUsableAction : Action {
+    override val name: String = "LicenseKeyUsableAction"
+}
+
+internal object LicenseExpiredAction : Action {
+    override val name: String = "LicenseExpiredAction"
+}
+
+internal object LicenseReleasedAction : Action {
+    override val name = "LicenseReleasedAction"
+}
+
+internal object LicenseDrmErrorAction : Action {
+    override val name: String  = "LicenseDrmErrorAction"
 }
 
 // Errors

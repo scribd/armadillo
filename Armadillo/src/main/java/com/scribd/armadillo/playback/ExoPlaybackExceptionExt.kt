@@ -4,10 +4,12 @@ import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlaybackException.TYPE_RENDERER
 import com.google.android.exoplayer2.ExoPlaybackException.TYPE_SOURCE
 import com.google.android.exoplayer2.audio.AudioSink
+import com.google.android.exoplayer2.drm.MediaDrmCallbackException
 import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.ArmadilloIOException
 import com.scribd.armadillo.error.HttpResponseCodeException
+import com.scribd.armadillo.error.ConnectivityException
 import com.scribd.armadillo.error.RendererConfigurationException
 import com.scribd.armadillo.error.RendererInitializationException
 import com.scribd.armadillo.error.RendererWriteException
@@ -24,7 +26,11 @@ internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
                     HttpResponseCodeException(source.responseCode, source.dataSpec.uri.toString(), source)
                 is HttpDataSource.HttpDataSourceException ->
                     HttpResponseCodeException(0, source.dataSpec.uri.toString(), source)
-                is SocketTimeoutException -> HttpResponseCodeException(0, null, source)
+                is MediaDrmCallbackException -> {
+                    val httpCause = source.cause as? HttpDataSource.InvalidResponseCodeException
+                    HttpResponseCodeException(httpCause?.responseCode ?: 0, httpCause?.dataSpec?.uri.toString(), source)
+                }
+                is SocketTimeoutException -> ConnectivityException(source)
                 is UnknownHostException ->
                     HttpResponseCodeException(0, source.message, source) // Message is supposed to be the host for UnknownHostException
                 else -> ArmadilloIOException(cause = this, actionThatFailedMessage = "Exoplayer error.")

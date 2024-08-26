@@ -1,5 +1,11 @@
 # Project Armadillo Release Notes
 
+## 1.5.1
+- Adds DrmState to ArmadilloState, giving full visibility into DRM status to the client, including the expiration date for content.
+- Splits SocketTimeout from HttpResponseCodeException, into ConnectivityException to better differentiate connectivity difficulties from 
+  developer error.
+- Ensures that ArmadilloState is updated from the main thread consistently.
+
 ## 1.5
 - Fixes Error and Exception handling to not hide underlying exceptions, and to clearly explain the nature of errors.
 

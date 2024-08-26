@@ -1,6 +1,7 @@
 package com.scribd.armadillo.di
 
 import android.content.Context
+import android.os.Handler
 import com.scribd.armadillo.ArmadilloStateStore
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Reducer
@@ -33,7 +34,7 @@ internal class AppModule(private val context: Context) {
     @Singleton
     @PrivateModule
     @Provides
-    fun stateStore(reducer: Reducer): ArmadilloStateStore = ArmadilloStateStore(reducer)
+    fun stateStore(reducer: Reducer): ArmadilloStateStore = ArmadilloStateStore(reducer, Handler(context.mainLooper))
 
     @Singleton
     @Provides

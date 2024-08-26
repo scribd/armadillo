@@ -1,5 +1,6 @@
 package com.scribd.armadillo
 
+import android.os.Handler
 import com.scribd.armadillo.actions.Action
 import com.scribd.armadillo.actions.ClearErrorAction
 import com.scribd.armadillo.error.MissingDataException
@@ -25,8 +26,8 @@ internal interface StateStore {
     }
 }
 
-internal class ArmadilloStateStore(private val reducer: Reducer) :
-        StateStore.Modifier, StateStore.Provider, StateStore.Initializer {
+internal class ArmadilloStateStore(private val reducer: Reducer, private val handler: Handler) :
+    StateStore.Modifier, StateStore.Provider, StateStore.Initializer {
 
     private companion object {
         const val TAG = "ArmadilloStateStore"
@@ -37,11 +38,14 @@ internal class ArmadilloStateStore(private val reducer: Reducer) :
     override fun init(state: ArmadilloState) = armadilloStateObservable.onNext(state)
 
     override fun dispatch(action: Action) {
-        val newAppState = reducer.reduce(currentState, action)
-        armadilloStateObservable.onNext(newAppState)
+        //run on consistent thread
+        handler.post {
+            val newAppState = reducer.reduce(currentState, action)
+            armadilloStateObservable.onNext(newAppState)
 
-        if (currentState.error != null) {
-            dispatch(ClearErrorAction)
+            if (currentState.error != null) {
+                dispatch(ClearErrorAction)
+            }
         }
     }
 

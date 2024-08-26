@@ -14,6 +14,7 @@ import java.util.Arrays
 data class ArmadilloState(
     val playbackInfo: PlaybackInfo? = null,
     val downloadInfo: List<DownloadProgressInfo>,
+    val drmPlaybackState: DrmState = DrmState.NoDRM,
     val internalState: InternalState = InternalState(),
     val error: ArmadilloException? = null) {
 
@@ -134,6 +135,30 @@ sealed class DownloadState {
 }
 
 data class InternalState(val isPlaybackEngineReady: Boolean = false)
+
+sealed class DrmState (val drmType: DrmType?, val expireMillis: Milliseconds, val isSessionValid: Boolean) {
+    /** This Content is not utilizing DRM protections, or is now first initializing **/
+    object NoDRM : DrmState(null, 0.milliseconds, true)
+
+    /** Attempt to open the license and decrypt */
+    class LicenseOpening(drmType: DrmType?, expireMillis: Milliseconds = 0.milliseconds): DrmState(drmType, expireMillis, true)
+
+    /** A DRM License has been obtained. */
+    class LicenseAcquired(drmType: DrmType, expireMillis: Milliseconds): DrmState(drmType, expireMillis, true)
+
+    /** The player encountered an expiration event */
+    class LicenseExpired(drmType: DrmType?, expireMillis: Milliseconds): DrmState(drmType, expireMillis, false)
+
+    /** A DRM license exists and content is able to be decrypted. */
+    class LicenseUsable(drmType: DrmType?, expireMillis: Milliseconds) : DrmState(drmType, expireMillis, true)
+
+    /** The content with the previously retrieved license has been released. */
+    class LicenseReleased(drmType: DrmType?, expireMillis: Milliseconds = 0.milliseconds, isSessionValid: Boolean)
+        : DrmState(drmType, expireMillis, isSessionValid)
+
+    /** An error occurred for the DRM license. This might not affect playback; see [ArmadilloState.error] for playback issues. */
+    class LicenseError(drmType: DrmType?, expireMillis: Milliseconds) : DrmState(drmType, expireMillis, false)
+}
 
 /**
  * Debugging information for [ArmadilloState]

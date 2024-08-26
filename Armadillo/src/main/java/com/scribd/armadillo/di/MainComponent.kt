@@ -4,7 +4,7 @@ import com.scribd.armadillo.ArmadilloPlayerChoreographer
 import com.scribd.armadillo.ArmadilloPlayerFactory
 import com.scribd.armadillo.analytics.PlaybackActionTransmitterImpl
 import com.scribd.armadillo.download.DefaultExoplayerDownloadService
-import com.scribd.armadillo.download.HeaderAwareDownloaderFactory
+import com.scribd.armadillo.download.drm.events.WidevineSessionEventListener
 import com.scribd.armadillo.playback.ExoplayerPlaybackEngine
 import com.scribd.armadillo.playback.MediaSessionCallback
 import com.scribd.armadillo.playback.PlaybackService
@@ -28,4 +28,5 @@ internal interface MainComponent {
     fun inject(playerEventListener: PlayerEventListener)
     fun inject(playbackActionTransmitterImpl: PlaybackActionTransmitterImpl)
     fun inject(mediaSourceRetrieverImpl: MediaSourceRetrieverImpl)
+    fun inject(widevineSessionEventListener: WidevineSessionEventListener)
 }

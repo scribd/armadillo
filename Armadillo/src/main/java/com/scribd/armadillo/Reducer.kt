@@ -8,10 +8,17 @@ import com.scribd.armadillo.actions.ContentEndedAction
 import com.scribd.armadillo.actions.CustomMediaSessionAction
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.actions.FastForwardAction
+import com.scribd.armadillo.actions.LicenseAcquiredAction
+import com.scribd.armadillo.actions.LicenseDrmErrorAction
+import com.scribd.armadillo.actions.LicenseExpirationDetermined
+import com.scribd.armadillo.actions.LicenseExpiredAction
+import com.scribd.armadillo.actions.LicenseKeyIsUsableAction
+import com.scribd.armadillo.actions.LicenseReleasedAction
 import com.scribd.armadillo.actions.LoadingAction
 import com.scribd.armadillo.actions.MediaRequestUpdateAction
 import com.scribd.armadillo.actions.MetadataUpdateAction
 import com.scribd.armadillo.actions.NewAudioPlayableAction
+import com.scribd.armadillo.actions.OpeningLicenseAction
 import com.scribd.armadillo.actions.PlaybackEngineReady
 import com.scribd.armadillo.actions.PlaybackProgressAction
 import com.scribd.armadillo.actions.PlaybackSpeedAction
@@ -33,6 +40,7 @@ import com.scribd.armadillo.extensions.filterOutCompletedItems
 import com.scribd.armadillo.extensions.removeItemsByUrl
 import com.scribd.armadillo.extensions.replaceDownloadProgressItemsByUrl
 import com.scribd.armadillo.models.ArmadilloState
+import com.scribd.armadillo.models.DrmState
 import com.scribd.armadillo.models.MediaControlState
 import com.scribd.armadillo.models.PlaybackInfo
 import com.scribd.armadillo.models.PlaybackProgress
@@ -46,6 +54,7 @@ import com.scribd.armadillo.time.Millisecond
  */
 internal object Reducer {
     const val TAG = "Reducer"
+
     /**
      * Due to floating point math, adding up the duration of the each chapter to determine the audioPlayable duration will result in some
      * level of inaccuracy. Generally, we seek to have the duration be slightly shorter then the actual playlist length. This value is
@@ -140,7 +149,8 @@ internal object Reducer {
                         playbackSpeed = Constants.DEFAULT_PLAYBACK_SPEED,
                         controlState = MediaControlState(isStartingNewAudioPlayable = true),
                         skipDistance = oldState.playbackInfo?.skipDistance ?: Constants.AUDIO_SKIP_DURATION,
-                        isLoading = true))
+                        isLoading = true),
+                    drmPlaybackState = DrmState.NoDRM)
                         .apply { debugState = newDebug }
             }
             is MediaRequestUpdateAction -> {
@@ -261,6 +271,42 @@ internal object Reducer {
                         ))
                         .apply { debugState = newDebug }
             }
+            is OpeningLicenseAction -> {
+                val oldDrm = oldState.drmPlaybackState
+                return oldState
+                    .copy(drmPlaybackState = DrmState.LicenseOpening(action.type ?: oldDrm.drmType))
+            }
+            is LicenseAcquiredAction -> {
+                val oldDrm = oldState.drmPlaybackState
+                return oldState
+                    .copy(drmPlaybackState = DrmState.LicenseAcquired(action.type, oldDrm.expireMillis))
+            }
+            is LicenseExpiredAction -> {
+                val oldDrm = oldState.drmPlaybackState
+                return oldState
+                    .copy(drmPlaybackState = DrmState.LicenseExpired(oldDrm.drmType, oldDrm.expireMillis))
+            }
+            is LicenseExpirationDetermined -> {
+                val oldDrm = oldState.drmPlaybackState
+                return oldState
+                    .copy(drmPlaybackState = DrmState.LicenseUsable(oldDrm.drmType, action.expirationMilliseconds))
+            }
+            is LicenseReleasedAction -> {
+                val oldDrm = oldState.drmPlaybackState
+                return oldState
+                    .copy(drmPlaybackState = DrmState.LicenseReleased(oldDrm.drmType,oldDrm.expireMillis, oldDrm.isSessionValid))
+            }
+            is LicenseKeyIsUsableAction -> {
+                val oldDrm = oldState.drmPlaybackState
+                return oldState
+                    .copy(drmPlaybackState = DrmState.LicenseUsable(oldDrm.drmType, oldDrm.expireMillis))
+            }
+            is LicenseDrmErrorAction -> {
+                val oldDrm = oldState.drmPlaybackState
+                return oldState
+                    .copy(drmPlaybackState = DrmState.LicenseError(oldDrm.drmType, oldDrm.expireMillis))
+            }
+
             else -> throw UnrecognizedAction(action)
         }
     }

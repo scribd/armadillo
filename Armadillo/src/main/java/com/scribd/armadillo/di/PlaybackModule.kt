@@ -4,10 +4,12 @@ import android.app.Application
 import android.content.Context
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
 import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
+import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.broadcast.ArmadilloNoisyReceiver
 import com.scribd.armadillo.broadcast.ArmadilloNoisySpeakerReceiver
 import com.scribd.armadillo.broadcast.ArmadilloNotificationDeleteReceiver
 import com.scribd.armadillo.broadcast.NotificationDeleteReceiver
+import com.scribd.armadillo.download.drm.ArmadilloDrmSessionManagerProvider
 import com.scribd.armadillo.mediaitems.ArmadilloMediaBrowse
 import com.scribd.armadillo.mediaitems.MediaContentSharer
 import com.scribd.armadillo.playback.ArmadilloAudioAttributes
@@ -73,5 +75,5 @@ internal class PlaybackModule {
 
     @Provides
     @Singleton
-    fun drmSessionManagerProvider(): DrmSessionManagerProvider = DefaultDrmSessionManagerProvider()
+    fun drmSessionManagerProvider(stateStore: StateStore.Modifier): DrmSessionManagerProvider = ArmadilloDrmSessionManagerProvider(stateStore)
 }

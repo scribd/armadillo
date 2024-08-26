@@ -4,6 +4,7 @@ import com.scribd.armadillo.DaggerComponentRule
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.models.ArmadilloState
 import com.scribd.armadillo.models.AudioPlayable
+import com.scribd.armadillo.models.DrmState
 import com.scribd.armadillo.models.InternalState
 import com.scribd.armadillo.models.MediaControlState
 import com.scribd.armadillo.models.PlaybackInfo
@@ -66,7 +67,7 @@ class PlaybackActionTransmitterImplTest {
         progress0 = mock()
         controls0 = mock()
         playback0 = mock()
-        state0 = ArmadilloState(playback0, emptyList(), InternalState(), null)
+        state0 = ArmadilloState(playback0, emptyList(), DrmState.NoDRM, InternalState(), null)
         whenever(playback0.audioPlayable).thenReturn(audiobook0)
         whenever(playback0.controlState).thenReturn(controls0)
         whenever(playback0.progress).thenReturn(progress0)
@@ -75,7 +76,7 @@ class PlaybackActionTransmitterImplTest {
         progress1 = mock()
         controls1 = mock()
         playback1 = mock()
-        state1 = ArmadilloState(playback1, emptyList(), InternalState(), null)
+        state1 = ArmadilloState(playback1, emptyList(), DrmState.NoDRM, InternalState(), null)
         whenever(playback1.audioPlayable).thenReturn(audiobook1)
         whenever(playback1.controlState).thenReturn(controls1)
         whenever(playback1.progress).thenReturn(progress1)
@@ -84,7 +85,7 @@ class PlaybackActionTransmitterImplTest {
         progress2 = mock()
         controls2 = mock()
         playback2 = mock()
-        state2 = ArmadilloState(playback2, emptyList(), InternalState(), null)
+        state2 = ArmadilloState(playback2, emptyList(), DrmState.NoDRM, InternalState(), null)
         whenever(playback2.audioPlayable).thenReturn(audiobook2)
         whenever(playback2.controlState).thenReturn(controls2)
         whenever(playback2.progress).thenReturn(progress2)
