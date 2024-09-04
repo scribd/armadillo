@@ -38,14 +38,11 @@ internal class ArmadilloStateStore(private val reducer: Reducer, private val han
     override fun init(state: ArmadilloState) = armadilloStateObservable.onNext(state)
 
     override fun dispatch(action: Action) {
-        //run on consistent thread
-        handler.post {
-            val newAppState = reducer.reduce(currentState, action)
-            armadilloStateObservable.onNext(newAppState)
+        val newAppState = reducer.reduce(currentState, action)
+        armadilloStateObservable.onNext(newAppState)
 
-            if (currentState.error != null) {
-                dispatch(ClearErrorAction)
-            }
+        if (currentState.error != null) {
+            dispatch(ClearErrorAction)
         }
     }
 

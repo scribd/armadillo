@@ -214,8 +214,8 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
     /**
      * emits the most recently emitted state and all the subsequent states when an observer subscribes to it.
      */
-    override val armadilloStateObservable
-        get() = stateProvider.stateSubject
+    override val armadilloStateObservable: Observable<ArmadilloState>
+        get() = stateProvider.stateSubject.observeOn(AndroidSchedulers.mainThread())
 
     private val pollingInterval =
         Observable.interval(observerPollIntervalMillis.longValue, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
