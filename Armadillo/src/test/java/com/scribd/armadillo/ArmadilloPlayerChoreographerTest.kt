@@ -55,7 +55,7 @@ class ArmadilloPlayerChoreographerTest {
         whenever(stateProvider.stateSubject).thenReturn(stateSubject)
 
         choreographer.stateProvider = stateProvider
-        assertThat(choreographer.armadilloStateObservable.value).isEqualTo(state)
+        assertThat(choreographer.armadilloStateSubject.value).isEqualTo(state)
     }
 
     @Test
