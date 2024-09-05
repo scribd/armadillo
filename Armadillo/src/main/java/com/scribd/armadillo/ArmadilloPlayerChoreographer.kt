@@ -41,6 +41,7 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.BehaviorSubject
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -214,8 +215,10 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
     /**
      * emits the most recently emitted state and all the subsequent states when an observer subscribes to it.
      */
-    override val armadilloStateObservable
-        get() = stateProvider.stateSubject
+    val armadilloStateSubject: BehaviorSubject<ArmadilloState>
+        get() =  stateProvider.stateSubject
+    override val armadilloStateObservable: Observable<ArmadilloState>
+        get() = armadilloStateSubject.observeOn(AndroidSchedulers.mainThread())
 
     private val pollingInterval =
         Observable.interval(observerPollIntervalMillis.longValue, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
@@ -439,7 +442,7 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
         data class PlaybackReadyData(val transportControls: MediaControllerCompat.TransportControls?, val engineIsReady: Boolean)
 
         Log.d(TAG, "Waiting for engine before invoking callback")
-        disposables.add(armadilloStateObservable
+        disposables.add(armadilloStateSubject
             .map {
                 PlaybackReadyData(playbackConnection?.transportControls, it.internalState.isPlaybackEngineReady)
             }

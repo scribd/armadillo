@@ -19,6 +19,7 @@ import com.scribd.armadillo.download.drm.OfflineDrmManager
 import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.ArmadilloIOException
 import com.scribd.armadillo.error.DownloadServiceLaunchedInBackground
+import com.scribd.armadillo.error.DrmDownloadException
 import com.scribd.armadillo.error.UnexpectedDownloadException
 import com.scribd.armadillo.extensions.encodeInByteArray
 import com.scribd.armadillo.extensions.toUri
@@ -39,6 +40,7 @@ internal interface DownloadEngine {
     fun removeDownload(audioPlayable: AudioPlayable)
     fun removeAllDownloads()
     fun updateProgress()
+    fun redownloadDrmLicense(request: AudioPlayable.MediaRequest)
 }
 
 /**
@@ -55,7 +57,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(
     private val downloadTracker: DownloadTracker,
     private val stateModifier: StateStore.Modifier,
     private val offlineDrmManager: OfflineDrmManager,
-    @Named(Constants.DI.GLOBAL_SCOPE) private val globalScope: CoroutineScope,
+    @Named(Constants.DI.GLOBAL_SCOPE) private val scope: CoroutineScope,
 ) : DownloadEngine {
     private val errorHandler = CoroutineExceptionHandler { _, e ->
         stateModifier.dispatch(ErrorAction(
@@ -65,10 +67,10 @@ internal class ExoplayerDownloadEngine @Inject constructor(
 
     override fun init() = downloadTracker.init()
     override fun download(audioPlayable: AudioPlayable) {
-        globalScope.launch(errorHandler) {
+        scope.launch(errorHandler) {
             launch {
                 // Download DRM license for offline use
-                offlineDrmManager.downloadDrmLicenseForOffline(audioPlayable)
+                offlineDrmManager.downloadDrmLicenseForOffline(audioPlayable.request)
             }
 
             launch {
@@ -96,20 +98,30 @@ internal class ExoplayerDownloadEngine @Inject constructor(
     }
 
     override fun removeDownload(audioPlayable: AudioPlayable) {
-        globalScope.launch(errorHandler) {
+        scope.launch(errorHandler) {
             launch { downloadManager.removeDownload(audioPlayable.request.url) }
-            launch { offlineDrmManager.removeDownloadedDrmLicense(audioPlayable) }
+            launch { offlineDrmManager.removeDownloadedDrmLicense(audioPlayable.request) }
         }
     }
 
     override fun removeAllDownloads() {
-        globalScope.launch(errorHandler) {
+        scope.launch(errorHandler) {
             launch { downloadManager.removeAllDownloads() }
             launch { offlineDrmManager.removeAllDownloadedDrmLicenses() }
         }
     }
 
     override fun updateProgress() = downloadTracker.updateProgress()
+
+    override fun redownloadDrmLicense(request: AudioPlayable.MediaRequest) {
+        scope.launch(errorHandler) {
+            try {
+                offlineDrmManager.downloadDrmLicenseForOffline(request)
+            } catch (ex: DrmDownloadException){
+                //continue to try and use old license - a playback error appears elsewhere
+            }
+        }
+    }
 
     private fun startDownload(context: Context, downloadRequest: DownloadRequest) =
         DownloadService.sendAddDownload(context, downloadService, downloadRequest, true)

@@ -9,6 +9,7 @@ import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.OpeningLicenseAction
+import com.scribd.armadillo.download.DownloadEngine
 import com.scribd.armadillo.download.DownloadTracker
 import com.scribd.armadillo.download.drm.events.WidevineSessionEventListener
 import com.scribd.armadillo.extensions.toUri
@@ -23,6 +24,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
     private val downloadTracker: DownloadTracker,
     private val drmMediaSourceHelper: DrmMediaSourceHelper,
     private val drmSessionManagerProvider: DrmSessionManagerProvider,
+    private val downloadEngine: DownloadEngine,
     private val stateStore: StateStore.Modifier,
 ) : MediaSourceGenerator {
 
@@ -40,6 +42,9 @@ internal class DashMediaSourceGenerator @Inject constructor(
 
         return if (isDownloaded) {
             val drmManager = drmSessionManagerProvider.get(mediaItem)
+            if(request.drmInfo?.drmType == DrmType.WIDEVINE) {
+                downloadEngine.redownloadDrmLicense(request)
+            }
             DownloadHelper.createMediaSource(download!!.request, dataSourceFactory, drmManager)
         } else {
             DashMediaSource.Factory(dataSourceFactory)
