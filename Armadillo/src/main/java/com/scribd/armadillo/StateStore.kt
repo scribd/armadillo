@@ -33,7 +33,9 @@ internal class ArmadilloStateStore(private val reducer: Reducer, private val han
         const val TAG = "ArmadilloStateStore"
     }
 
-    private val armadilloStateObservable = BehaviorSubject.create<ArmadilloState>()
+    private val armadilloStateObservable = BehaviorSubject.create<ArmadilloState>().also {
+       it.onNext(ArmadilloState(downloadInfo = emptyList()))
+    }
 
     override fun init(state: ArmadilloState) = armadilloStateObservable.onNext(state)
 

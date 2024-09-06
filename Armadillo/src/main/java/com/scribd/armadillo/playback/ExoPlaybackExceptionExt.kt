@@ -30,9 +30,8 @@ internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
                     val httpCause = source.cause as? HttpDataSource.InvalidResponseCodeException
                     HttpResponseCodeException(httpCause?.responseCode ?: 0, httpCause?.dataSpec?.uri.toString(), source)
                 }
+                is UnknownHostException,
                 is SocketTimeoutException -> ConnectivityException(source)
-                is UnknownHostException ->
-                    HttpResponseCodeException(0, source.message, source) // Message is supposed to be the host for UnknownHostException
                 else -> ArmadilloIOException(cause = this, actionThatFailedMessage = "Exoplayer error.")
             }
         }

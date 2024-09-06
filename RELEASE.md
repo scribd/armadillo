@@ -1,5 +1,9 @@
 # Project Armadillo Release Notes
 
+## 1.5.4
+- Ensured that ArmadilloPlayer.armadilloStateObservable has a state as soon as the player is initialized
+- Fixed UnknownHostException being mapped to a HTTP status code issue rather than a Connectivity issue.
+
 ## 1.5.3
 - Attempts to renew the widevine license of downloaded DRM content when playback begins, similarly to how streaming does it.
 - Fixes ANR issue in the Reducer.

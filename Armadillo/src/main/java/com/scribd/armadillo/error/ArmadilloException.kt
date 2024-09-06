@@ -3,6 +3,7 @@ package com.scribd.armadillo.error
 import com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException
 import com.scribd.armadillo.actions.Action
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 sealed class ArmadilloException(cause: Throwable? = null,
                                 isNetworkRelatedError: Boolean = false,
@@ -181,7 +182,7 @@ class DrmDownloadException(cause: Exception)
     : ArmadilloException(
     cause = cause,
     message = "Failed to process DRM license for downloading.",
-    isNetworkRelatedError = (cause is HttpDataSourceException) || (cause is SocketTimeoutException)) {
+    isNetworkRelatedError = (cause is HttpDataSourceException) || (cause is SocketTimeoutException) || (cause is UnknownHostException)) {
     override val errorCode = 701
 }
 
