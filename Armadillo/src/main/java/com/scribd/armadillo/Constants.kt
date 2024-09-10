@@ -42,6 +42,7 @@ object Constants {
         const val GLOBAL_SCOPE = "global_scope"
 
         const val STANDARD_STORAGE = "standard_storage"
+        const val STANDARD_SECURE_STORAGE = "standard_secure_storage"
         const val DRM_DOWNLOAD_STORAGE = "drm_download_storage"
         const val DRM_SECURE_STORAGE = "drm_secure_storage"
     }

@@ -27,8 +27,9 @@ internal interface SecureStorage {
 
 @Singleton
 internal class ArmadilloSecureStorage @Inject constructor(
-    @Named(Constants.DI.STANDARD_STORAGE) private val standardStorage: SharedPreferences,
-    @Named(Constants.DI.DRM_DOWNLOAD_STORAGE) private val drmDownloadStorage: SharedPreferences,
+    @Named(Constants.DI.STANDARD_STORAGE) private val legacyStandardStorage: SharedPreferences,
+    @Named(Constants.DI.STANDARD_SECURE_STORAGE) private val secureStandardStorage: SharedPreferences,
+    @Named(Constants.DI.DRM_DOWNLOAD_STORAGE) private val legacyDrmStorage: SharedPreferences,
     @Named(Constants.DI.DRM_SECURE_STORAGE) private val secureDrmStorage: SharedPreferences
 ) : SecureStorage {
     companion object {
@@ -40,15 +41,25 @@ internal class ArmadilloSecureStorage @Inject constructor(
     }
 
     override fun downloadSecretKey(context: Context): ByteArray {
-        return if (standardStorage.contains(DOWNLOAD_KEY)) {
-            val storedKey = standardStorage.getString(DOWNLOAD_KEY, DEFAULT)!!
+        return if (secureStandardStorage.contains(DOWNLOAD_KEY)) {
+            val storedKey = secureDrmStorage.getString(DOWNLOAD_KEY, DEFAULT)!!
             if (storedKey == DEFAULT) {
                 Log.e(TAG, "Storage Is Out of Alignment")
             }
             storedKey.toSecretByteArray
+        } else if(legacyStandardStorage.contains(DOWNLOAD_KEY)) {
+            //migrate to secured version
+            val storedKey = legacyStandardStorage.getString(DOWNLOAD_KEY, DEFAULT)!!
+            if (storedKey == DEFAULT) {
+                Log.e(TAG, "Storage Is Out of Alignment")
+            }
+            secureStandardStorage.edit().putString(DOWNLOAD_KEY, storedKey).apply()
+            legacyStandardStorage.edit().remove(DOWNLOAD_KEY).apply()
+            storedKey.toSecretByteArray
         } else {
+            //no key exists anywhere yet
             createRandomString().also {
-                standardStorage.edit().putString(DOWNLOAD_KEY, it).apply()
+                secureStandardStorage.edit().putString(DOWNLOAD_KEY, it).apply()
             }.toSecretByteArray
         }
     }
@@ -68,31 +79,31 @@ internal class ArmadilloSecureStorage @Inject constructor(
     override fun getDrmDownload(context: Context, audioUrl: String, drmType: DrmType): DrmDownload? {
         val alias = getDrmDownloadAlias(audioUrl, drmType)
         var download = secureDrmStorage.getString(alias, null)?.decodeToDrmDownload()
-        if (download == null && drmDownloadStorage.contains(alias)) {
+        if (download == null && legacyDrmStorage.contains(alias)) {
             //migrate old storage to secure storage
-            val downloadValue = drmDownloadStorage.getString(alias, null)
+            val downloadValue = legacyDrmStorage.getString(alias, null)
             download = downloadValue?.decodeToDrmDownload()
             secureDrmStorage.edit().putString(alias, downloadValue).apply()
-            drmDownloadStorage.edit().remove(alias).apply()
+            legacyDrmStorage.edit().remove(alias).apply()
         }
         return download
     }
 
     override fun getAllDrmDownloads(context: Context): Map<String, DrmDownload> =
-        drmDownloadStorage.all.keys.mapNotNull { key ->
-            drmDownloadStorage.getString(key, null)?.let { drmResult ->
+        legacyDrmStorage.all.keys.mapNotNull { key ->
+            legacyDrmStorage.getString(key, null)?.let { drmResult ->
                 key to drmResult.decodeToDrmDownload()
             }
         }.toMap()
 
     override fun removeDrmDownload(context: Context, audioUrl: String, drmType: DrmType) {
         val alias = getDrmDownloadAlias(audioUrl, drmType)
-        drmDownloadStorage.edit().remove(alias).apply()
+        legacyDrmStorage.edit().remove(alias).apply()
         secureDrmStorage.edit().remove(alias).apply()
     }
 
     override fun removeDrmDownload(context: Context, key: String) {
-        drmDownloadStorage.edit().remove(key).apply()
+        legacyDrmStorage.edit().remove(key).apply()
         secureDrmStorage.edit().remove(key).apply()
     }
 
