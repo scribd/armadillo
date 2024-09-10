@@ -89,12 +89,20 @@ internal class ArmadilloSecureStorage @Inject constructor(
         return download
     }
 
-    override fun getAllDrmDownloads(context: Context): Map<String, DrmDownload> =
-        legacyDrmStorage.all.keys.mapNotNull { key ->
-            legacyDrmStorage.getString(key, null)?.let { drmResult ->
-                key to drmResult.decodeToDrmDownload()
+    override fun getAllDrmDownloads(context: Context): Map<String, DrmDownload> {
+        val drmDownloads = secureDrmStorage.all.keys.mapNotNull { alias ->
+            secureDrmStorage.getString(alias, null)?.let { drmResult ->
+                alias to drmResult.decodeToDrmDownload()
             }
         }.toMap()
+        val legacyDownloads = legacyDrmStorage.all.keys.mapNotNull { alias ->
+            legacyDrmStorage.getString(alias, null)?.let { drmResult ->
+                alias to drmResult.decodeToDrmDownload()
+            }
+        }.toMap()
+
+        return drmDownloads.plus(legacyDownloads)
+    }
 
     override fun removeDrmDownload(context: Context, audioUrl: String, drmType: DrmType) {
         val alias = getDrmDownloadAlias(audioUrl, drmType)
