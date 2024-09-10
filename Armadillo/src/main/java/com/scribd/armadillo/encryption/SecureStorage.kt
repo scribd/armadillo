@@ -29,6 +29,7 @@ internal interface SecureStorage {
 internal class ArmadilloSecureStorage @Inject constructor(
     @Named(Constants.DI.STANDARD_STORAGE) private val standardStorage: SharedPreferences,
     @Named(Constants.DI.DRM_DOWNLOAD_STORAGE) private val drmDownloadStorage: SharedPreferences,
+    @Named(Constants.DI.DRM_SECURE_STORAGE) private val secureDrmStorage: SharedPreferences
 ) : SecureStorage {
     companion object {
         const val DOWNLOAD_KEY = "download_key"
@@ -59,13 +60,23 @@ internal class ArmadilloSecureStorage @Inject constructor(
     }
 
     override fun saveDrmDownload(context: Context, audioUrl: String, drmDownload: DrmDownload) {
-        val key = getDrmDownloadKey(audioUrl, drmDownload.drmType)
+        val alias = getDrmDownloadAlias(audioUrl, drmDownload.drmType)
         val value = Base64.encodeToString(Json.encodeToString(drmDownload).toByteArray(StandardCharsets.UTF_8), Base64.NO_WRAP)
-        drmDownloadStorage.edit().putString(key, value).apply()
+        secureDrmStorage.edit().putString(alias, value).apply()
     }
 
-    override fun getDrmDownload(context: Context, audioUrl: String, drmType: DrmType): DrmDownload? =
-        drmDownloadStorage.getString(getDrmDownloadKey(audioUrl, drmType), null)?.decodeToDrmDownload()
+    override fun getDrmDownload(context: Context, audioUrl: String, drmType: DrmType): DrmDownload? {
+        val alias = getDrmDownloadAlias(audioUrl, drmType)
+        var download = secureDrmStorage.getString(alias, null)?.decodeToDrmDownload()
+        if (download == null && drmDownloadStorage.contains(alias)) {
+            //migrate old storage to secure storage
+            val downloadValue = drmDownloadStorage.getString(alias, null)
+            download = downloadValue?.decodeToDrmDownload()
+            secureDrmStorage.edit().putString(alias, downloadValue).apply()
+            drmDownloadStorage.edit().remove(alias).apply()
+        }
+        return download
+    }
 
     override fun getAllDrmDownloads(context: Context): Map<String, DrmDownload> =
         drmDownloadStorage.all.keys.mapNotNull { key ->
@@ -75,11 +86,14 @@ internal class ArmadilloSecureStorage @Inject constructor(
         }.toMap()
 
     override fun removeDrmDownload(context: Context, audioUrl: String, drmType: DrmType) {
-        drmDownloadStorage.edit().remove(getDrmDownloadKey(audioUrl, drmType)).apply()
+        val alias = getDrmDownloadAlias(audioUrl, drmType)
+        drmDownloadStorage.edit().remove(alias).apply()
+        secureDrmStorage.edit().remove(alias).apply()
     }
 
     override fun removeDrmDownload(context: Context, key: String) {
         drmDownloadStorage.edit().remove(key).apply()
+        secureDrmStorage.edit().remove(key).apply()
     }
 
     private val String.toSecretByteArray: ByteArray
@@ -91,7 +105,7 @@ internal class ArmadilloSecureStorage @Inject constructor(
             return keyBytes
         }
 
-    private fun getDrmDownloadKey(audioUrl: String, drmType: DrmType) =
+    private fun getDrmDownloadAlias(audioUrl: String, drmType: DrmType) =
         Base64.encodeToString(audioUrl.toSecretByteArray + drmType.name.toSecretByteArray, Base64.NO_WRAP)
 
     private fun String.decodeToDrmDownload(): DrmDownload =
