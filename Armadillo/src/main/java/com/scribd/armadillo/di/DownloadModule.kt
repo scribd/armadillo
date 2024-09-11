@@ -2,6 +2,13 @@ package com.scribd.armadillo.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties.BLOCK_MODE_GCM
+import android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE
+import android.security.keystore.KeyProperties.PURPOSE_DECRYPT
+import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import com.google.android.exoplayer2.offline.DownloadManager
 import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.offline.DownloaderFactory
@@ -110,6 +117,46 @@ internal class DownloadModule {
     @Named(Constants.DI.DRM_DOWNLOAD_STORAGE)
     fun drmDownloadStorage(context: Context): SharedPreferences =
         context.getSharedPreferences("armadillo.download.drm", Context.MODE_PRIVATE)
+
+    @Singleton
+    @Provides
+    @Named(Constants.DI.STANDARD_SECURE_STORAGE)
+    fun standardSecureStorage(context: Context): SharedPreferences {
+        val keys = MasterKeys.getOrCreate(
+            KeyGenParameterSpec.Builder("armadilloStandard", PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
+                .setKeySize(256)
+                .setBlockModes(BLOCK_MODE_GCM)
+                .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
+                .build()
+        )
+        return EncryptedSharedPreferences.create(
+            "armadillo.standard.secure",
+            keys,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+
+    @Singleton
+    @Provides
+    @Named(Constants.DI.DRM_SECURE_STORAGE)
+    fun drmSecureStorage(context: Context): SharedPreferences {
+        val keys = MasterKeys.getOrCreate(
+            KeyGenParameterSpec.Builder("armadillo", PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
+                .setKeySize(256)
+                .setBlockModes(BLOCK_MODE_GCM)
+                .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
+                .build()
+        )
+        return EncryptedSharedPreferences.create(
+            "armadillo.download.secure",
+            keys,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
     @Singleton
     @Provides

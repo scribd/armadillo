@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.6.0
+- Encrypts widevine drm keys. The Android minSDK has been changed to version 23 in order to support this feature.
+
 ## 1.5.4
 - Ensured that ArmadilloPlayer.armadilloStateObservable has a state as soon as the player is initialized
 - Fixed UnknownHostException being mapped to a HTTP status code issue rather than a Connectivity issue.
