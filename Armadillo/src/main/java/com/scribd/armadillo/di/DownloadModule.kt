@@ -121,41 +121,50 @@ internal class DownloadModule {
     @Singleton
     @Provides
     @Named(Constants.DI.STANDARD_SECURE_STORAGE)
-    fun standardSecureStorage(context: Context): SharedPreferences {
-        val keys = MasterKeys.getOrCreate(
-            KeyGenParameterSpec.Builder("armadilloStandard", PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
-                .setKeySize(256)
-                .setBlockModes(BLOCK_MODE_GCM)
-                .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
-                .build()
-        )
-        return EncryptedSharedPreferences.create(
-            "armadillo.standard.secure",
-            keys,
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+    fun standardSecureStorage(context: Context): SharedPreferences? {
+        return try {
+            val keys = MasterKeys.getOrCreate(
+                KeyGenParameterSpec.Builder("armadilloStandard", PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
+                    .setKeySize(256)
+                    .setBlockModes(BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
+                    .build()
+            )
+            EncryptedSharedPreferences.create(
+                "armadillo.standard.secure",
+                keys,
+                context,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (ex: Exception) {
+            null
+        }
     }
 
     @Singleton
     @Provides
     @Named(Constants.DI.DRM_SECURE_STORAGE)
-    fun drmSecureStorage(context: Context): SharedPreferences {
-        val keys = MasterKeys.getOrCreate(
-            KeyGenParameterSpec.Builder("armadillo", PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
-                .setKeySize(256)
-                .setBlockModes(BLOCK_MODE_GCM)
-                .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
-                .build()
-        )
-        return EncryptedSharedPreferences.create(
-            "armadillo.download.secure",
-            keys,
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+    fun drmSecureStorage(context: Context): SharedPreferences? {
+        return try {
+            val keys = MasterKeys.getOrCreate(
+                KeyGenParameterSpec.Builder("armadillo", PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
+                    .setKeySize(256)
+                    .setBlockModes(BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
+                    .build()
+            )
+            EncryptedSharedPreferences.create(
+                "armadillo.download.secure",
+                keys,
+                context,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }
+        catch (ex: Exception) {
+            null
+        }
     }
 
     @Singleton
