@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.6.1 
+- Prevents fatal crashing when content fails to load
+
 ## 1.6.0
 - Encrypts widevine drm keys. The Android minSDK has been changed to version 23 in order to support this feature.
 

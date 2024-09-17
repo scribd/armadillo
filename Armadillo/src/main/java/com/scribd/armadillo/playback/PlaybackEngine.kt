@@ -12,6 +12,7 @@ import com.scribd.armadillo.ArmadilloPlayerChoreographer
 import com.scribd.armadillo.Constants
 import com.scribd.armadillo.Milliseconds
 import com.scribd.armadillo.StateStore
+import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.actions.FastForwardAction
 import com.scribd.armadillo.actions.NewAudioPlayableAction
 import com.scribd.armadillo.actions.PlaybackEngineReady
@@ -24,7 +25,9 @@ import com.scribd.armadillo.actions.SkipNextAction
 import com.scribd.armadillo.actions.SkipPrevAction
 import com.scribd.armadillo.di.Injector
 import com.scribd.armadillo.encryption.ExoplayerEncryption
+import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.MissingDataException
+import com.scribd.armadillo.error.PlaybackStartFailureException
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.Chapter
 import com.scribd.armadillo.models.PlaybackState
@@ -137,16 +140,21 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
 
         exoPlayer = createExoplayerInstance(context, audioAttributes.exoPlayerAttrs, loadControl)
 
-        val mediaSource = mediaSourceRetriever.generateMediaSource(audioPlayable.request, context)
-        exoPlayer.setMediaSource(mediaSource)
-        exoPlayer.prepare()
+        try {
+            val mediaSource = mediaSourceRetriever.generateMediaSource(audioPlayable.request, context)
+            exoPlayer.setMediaSource(mediaSource)
+            exoPlayer.prepare()
 
-        exoPlayer.addListener(playerEventListener)
+            exoPlayer.addListener(playerEventListener)
 
-        exoPlayer.playWhenReady = config.isAutoPlay
+            exoPlayer.playWhenReady = config.isAutoPlay
 
-        stateModifier.dispatch(PlaybackEngineReady(true))
-        stateModifier.dispatch(PlayerStateAction(PlaybackState.PAUSED))
+            stateModifier.dispatch(PlaybackEngineReady(true))
+            stateModifier.dispatch(PlayerStateAction(PlaybackState.PAUSED))
+        } catch (ex: Exception) {
+            val armadilloException = if(ex is ArmadilloException) ex else PlaybackStartFailureException(cause = ex)
+            stateModifier.dispatch(ErrorAction(armadilloException))
+        }
     }
 
     override fun updateMediaRequest(mediaRequest: AudioPlayable.MediaRequest) {
