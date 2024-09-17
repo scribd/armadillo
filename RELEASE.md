@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.6.2
+- Prevents fatal crashing for actions are being performed before the player is initialized
+
 ## 1.6.1 
 - Prevents fatal crashing when content fails to load
 
