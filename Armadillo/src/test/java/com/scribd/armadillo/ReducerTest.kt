@@ -386,9 +386,9 @@ class ReducerTest {
             "https://www.github.com/scribd/armadillo"
         ))
 
-        assertThrows(ActionBeforeSetup::class.java) {
-            Reducer.reduce(oldState, action)
-        }
+        val state = Reducer.reduce(oldState, action)
+        assertThat(state.error).isInstanceOfAny(ActionBeforeSetup::class.java)
+
     }
 
     @Test
@@ -398,9 +398,8 @@ class ReducerTest {
             "https://www.github.com/scribd/armadillo"
         ))
 
-        assertThrows("MediaRequestUpdate cannot be used to change playback URL", InvalidRequest::class.java) {
-            Reducer.reduce(oldState, action)
-        }
+        val state = Reducer.reduce(oldState, action)
+        assertThat(state.error).isInstanceOfAny(InvalidRequest::class.java)
     }
     @Test
     fun reduce_mediaRequestUpdateAction_updatesRequest() {
