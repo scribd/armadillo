@@ -339,6 +339,9 @@ internal object Reducer {
         } catch (ex: InvalidRequest) {
             return oldState.copy(error = ex)
                 .apply { debugState = newDebug }
+        } catch (ex: UnrecognizedAction) {
+            return oldState.copy(error = ex)
+                .apply { debugState = newDebug }
         }
     }
 
