@@ -141,7 +141,10 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
         exoPlayer = createExoplayerInstance(context, audioAttributes.exoPlayerAttrs, loadControl)
 
         try {
-            val mediaSource = mediaSourceRetriever.generateMediaSource(audioPlayable.request, context)
+            val mediaSource = mediaSourceRetriever.generateMediaSource(
+                mediaId = audioPlayable.id.toString(),
+                request = audioPlayable.request,
+                context = context)
             exoPlayer.setMediaSource(mediaSource)
             exoPlayer.prepare()
 

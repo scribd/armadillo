@@ -7,7 +7,6 @@ import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.actions.LicenseAcquiredAction
 import com.scribd.armadillo.actions.LicenseReleasedAction
 import com.scribd.armadillo.di.Injector
-import com.scribd.armadillo.encryption.SecureStorage
 import com.scribd.armadillo.models.DrmType
 import javax.inject.Inject
 
@@ -16,9 +15,6 @@ internal class WidevineSessionEventListener
 
     @Inject
     internal lateinit var stateStore: StateStore.Modifier
-
-    @Inject
-    internal lateinit var secureStorage: SecureStorage
 
     @Inject
     internal lateinit var context: Context

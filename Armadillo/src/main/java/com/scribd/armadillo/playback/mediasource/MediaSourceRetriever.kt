@@ -12,8 +12,7 @@ import javax.inject.Inject
 /** Creates a MediaSource for starting playback in Exoplayer based on what type
  * of audio content is passed into it. */
 interface MediaSourceRetriever {
-    fun generateMediaSource(request: AudioPlayable.MediaRequest,
-                            context: Context): MediaSource
+    fun generateMediaSource(mediaId: String, request: AudioPlayable.MediaRequest, context: Context): MediaSource
 
     fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest)
 }
@@ -32,10 +31,11 @@ class MediaSourceRetrieverImpl @Inject constructor(): MediaSourceRetriever {
         Injector.mainComponent.inject(this)
     }
 
-    override fun generateMediaSource(request: AudioPlayable.MediaRequest,
+    override fun generateMediaSource(mediaId: String,
+                                     request: AudioPlayable.MediaRequest,
                                      context: Context): MediaSource {
 
-        return buildMediaGenerator(request).generateMediaSource(context, request)
+        return buildMediaGenerator(request).generateMediaSource(mediaId = mediaId, context = context, request = request)
     }
 
     override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) {

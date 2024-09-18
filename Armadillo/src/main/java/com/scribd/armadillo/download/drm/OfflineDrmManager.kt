@@ -28,7 +28,7 @@ internal class OfflineDrmManager @Inject constructor(
         private const val TAG = "OfflineDrmManager"
     }
 
-    suspend fun downloadDrmLicenseForOffline(request: AudioPlayable.MediaRequest) {
+    suspend fun downloadDrmLicenseForOffline(id: String, request: AudioPlayable.MediaRequest) {
         withContext(Dispatchers.IO) {
             request.drmInfo?.let { drmInfo ->
                 val drmResult = when (@C.ContentType val type = Util.inferContentType(request.url.toUri(), null)) {
@@ -41,18 +41,18 @@ internal class OfflineDrmManager @Inject constructor(
                 )
 
                 // Persist DRM result, which includes the key ID that can be used to retrieve the offline license
-                secureStorage.saveDrmDownload(context, request.url, drmResult)
+                secureStorage.saveDrmDownload(context, id, drmResult)
                 Log.i(TAG, "DRM license ready for offline usage")
             }
         }
     }
 
-    suspend fun removeDownloadedDrmLicense(request: AudioPlayable.MediaRequest) {
+    suspend fun removeDownloadedDrmLicense(id: String, request: AudioPlayable.MediaRequest) {
         withContext(Dispatchers.IO) {
             request.drmInfo?.let { drmInfo ->
-                secureStorage.getDrmDownload(context, request.url, drmInfo.drmType)?.let { drmDownload ->
+                secureStorage.getDrmDownload(context = context, id = id, drmType = drmInfo.drmType)?.let { drmDownload ->
                     // Remove the persisted download info immediately so audio playback would stop using the offline license
-                    secureStorage.removeDrmDownload(context, request.url, drmInfo.drmType)
+                    secureStorage.removeDrmDownload(context = context, id = id, drmType = drmInfo.drmType)
 
                     // Release the DRM license
                     when (val type = drmDownload.audioType) {

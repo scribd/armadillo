@@ -21,10 +21,10 @@ internal class HlsMediaSourceGenerator @Inject constructor(
     private val downloadTracker: DownloadTracker) : MediaSourceGenerator {
 
 
-    override fun generateMediaSource(context: Context, request: AudioPlayable.MediaRequest): MediaSource {
+    override fun generateMediaSource(mediaId: String, context: Context, request: AudioPlayable.MediaRequest): MediaSource {
         val dataSourceFactory = mediaSourceHelper.createDataSourceFactory(context, request)
 
-        downloadTracker.getDownload(request.url.toUri())?.let {
+        downloadTracker.getDownload(id = mediaId, uri = request.url)?.let {
             if (it.state != Download.STATE_FAILED) {
                 return DownloadHelper.createMediaSource(it.request, dataSourceFactory)
             }

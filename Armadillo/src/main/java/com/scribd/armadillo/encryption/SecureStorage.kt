@@ -19,10 +19,10 @@ import javax.inject.Singleton
 
 internal interface SecureStorage {
     fun downloadSecretKey(context: Context): ByteArray
-    fun saveDrmDownload(context: Context, audioUrl: String, drmDownload: DrmDownload)
-    fun getDrmDownload(context: Context, audioUrl: String, drmType: DrmType): DrmDownload?
+    fun saveDrmDownload(context: Context, id: String, drmDownload: DrmDownload)
+    fun getDrmDownload(context: Context, id: String, drmType: DrmType): DrmDownload?
     fun getAllDrmDownloads(context: Context): Map<String, DrmDownload>
-    fun removeDrmDownload(context: Context, audioUrl: String, drmType: DrmType)
+    fun removeDrmDownload(context: Context, id: String, drmType: DrmType)
     fun removeDrmDownload(context: Context, key: String)
 }
 
@@ -43,14 +43,14 @@ internal class ArmadilloSecureStorage @Inject constructor(
 
     override fun downloadSecretKey(context: Context): ByteArray {
         return if (secureStandardStorage?.contains(DOWNLOAD_KEY) == true) {
-            val storedKey = secureDrmStorage?.getString(DOWNLOAD_KEY, DEFAULT)!!
+            val storedKey = secureDrmStorage?.getString(DOWNLOAD_KEY, DEFAULT) ?: DEFAULT
             if (storedKey == DEFAULT) {
                 Log.e(TAG, "Storage Is Out of Alignment")
             }
             storedKey.toSecretByteArray
         } else if(legacyStandardStorage.contains(DOWNLOAD_KEY)) {
             //migrate to secured version
-            val storedKey = legacyStandardStorage.getString(DOWNLOAD_KEY, DEFAULT)!!
+            val storedKey = legacyStandardStorage.getString(DOWNLOAD_KEY, DEFAULT) ?: DEFAULT
             if (storedKey == DEFAULT) {
                 Log.e(TAG, "Storage Is Out of Alignment")
             }
@@ -71,17 +71,17 @@ internal class ArmadilloSecureStorage @Inject constructor(
             .joinToString("")
     }
 
-    override fun saveDrmDownload(context: Context, audioUrl: String, drmDownload: DrmDownload) {
+    override fun saveDrmDownload(context: Context, id: String, drmDownload: DrmDownload) {
         if(secureDrmStorage == null){
             throw DrmDownloadException(UnsupportedOperationException("This device cannot encrypt downloads"))
         }
-        val alias = getDrmDownloadAlias(audioUrl, drmDownload.drmType)
+        val alias = getDrmDownloadAlias(id, drmDownload.drmType)
         val value = Base64.encodeToString(Json.encodeToString(drmDownload).toByteArray(StandardCharsets.UTF_8), Base64.NO_WRAP)
         secureDrmStorage.edit()?.putString(alias, value)?.apply()
     }
 
-    override fun getDrmDownload(context: Context, audioUrl: String, drmType: DrmType): DrmDownload? {
-        val alias = getDrmDownloadAlias(audioUrl, drmType)
+    override fun getDrmDownload(context: Context, id: String, drmType: DrmType): DrmDownload? {
+        val alias = getDrmDownloadAlias(id, drmType)
         var download = secureDrmStorage?.getString(alias, null)?.decodeToDrmDownload()
         if (download == null && legacyDrmStorage.contains(alias)) {
             //migrate old storage to secure storage
@@ -110,8 +110,8 @@ internal class ArmadilloSecureStorage @Inject constructor(
         return legacyDownloads.plus(drmDownloads ?: emptyMap())
     }
 
-    override fun removeDrmDownload(context: Context, audioUrl: String, drmType: DrmType) {
-        val alias = getDrmDownloadAlias(audioUrl, drmType)
+    override fun removeDrmDownload(context: Context, id: String, drmType: DrmType) {
+        val alias = getDrmDownloadAlias(id, drmType)
         legacyDrmStorage.edit().remove(alias).apply()
         secureDrmStorage?.edit()?.remove(alias)?.apply()
     }
@@ -130,8 +130,8 @@ internal class ArmadilloSecureStorage @Inject constructor(
             return keyBytes
         }
 
-    private fun getDrmDownloadAlias(audioUrl: String, drmType: DrmType) =
-        Base64.encodeToString(audioUrl.toSecretByteArray + drmType.name.toSecretByteArray, Base64.NO_WRAP)
+    private fun getDrmDownloadAlias(id: String, drmType: DrmType) =
+        Base64.encodeToString(id.toSecretByteArray + drmType.name.toSecretByteArray, Base64.NO_WRAP)
 
     private fun String.decodeToDrmDownload(): DrmDownload =
         Base64.decode(this, Base64.NO_WRAP).let { resultByteArray ->

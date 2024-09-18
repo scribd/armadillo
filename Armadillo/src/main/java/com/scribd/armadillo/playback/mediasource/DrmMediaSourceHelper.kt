@@ -18,6 +18,7 @@ import javax.inject.Singleton
 internal interface DrmMediaSourceHelper {
     fun createMediaItem(
         context: Context,
+        id: String,
         request: AudioPlayable.MediaRequest,
         isDownload: Boolean,
     ): MediaItem
@@ -26,7 +27,7 @@ internal interface DrmMediaSourceHelper {
 @Singleton
 internal class DrmMediaSourceHelperImpl @Inject constructor(private val secureStorage: SecureStorage) : DrmMediaSourceHelper {
 
-    override fun createMediaItem(context: Context, request: AudioPlayable.MediaRequest, isDownload: Boolean): MediaItem =
+    override fun createMediaItem(context: Context, id: String, request: AudioPlayable.MediaRequest, isDownload: Boolean): MediaItem =
         MediaItem.Builder()
             .setUri(request.url)
             .apply {
@@ -39,7 +40,7 @@ internal class DrmMediaSourceHelperImpl @Inject constructor(private val secureSt
                             // If the content is a download content, use the saved offline DRM key id.
                             // This ID is needed to retrieve the local DRM license for content decryption.
                             if (isDownload) {
-                                secureStorage.getDrmDownload(context, request.url, drmInfo.drmType)?.let { drmDownload ->
+                                secureStorage.getDrmDownload(context = context, id =  id, drmType = drmInfo.drmType)?.let { drmDownload ->
                                     setKeySetId(drmDownload.drmKeyId)
                                 } ?: throw DrmPlaybackException(IllegalStateException("No DRM key id saved for download content"))
                             }

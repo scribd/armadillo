@@ -1,6 +1,5 @@
 package com.scribd.armadillo.download
 
-import android.net.Uri
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.google.android.exoplayer2.offline.Download
@@ -14,7 +13,6 @@ import com.scribd.armadillo.actions.StopTrackingDownloadAction
 import com.scribd.armadillo.actions.UpdateDownloadAction
 import com.scribd.armadillo.error.DownloadFailed
 import com.scribd.armadillo.error.UnableToLoadDownloadInfo
-import com.scribd.armadillo.extensions.toUri
 import com.scribd.armadillo.models.DownloadProgressInfo
 import com.scribd.armadillo.models.DownloadState
 import kotlinx.coroutines.CoroutineScope
@@ -35,8 +33,8 @@ import javax.inject.Singleton
  */
 internal interface DownloadTracker {
     fun init()
-    fun trackDownload(download: ExoplayerDownload)
-    fun getDownload(uri: Uri): ExoplayerDownload?
+    fun trackDownload(id: String, download: ExoplayerDownload)
+    fun getDownload(id: String, uri: String): ExoplayerDownload?
     fun updateProgress()
     suspend fun loadDownloads()
 }
@@ -58,7 +56,7 @@ internal class ExoplayerDownloadTracker @Inject constructor(
         private const val TAG = "DownloadTracker"
     }
 
-    private val downloads = HashMap<Uri, ExoplayerDownload>()
+    private val downloads = HashMap<String, ExoplayerDownload>()
     private val downloadIndex = downloadManager.downloadIndex
 
     private var isInitialized = false
@@ -89,8 +87,8 @@ internal class ExoplayerDownloadTracker @Inject constructor(
                     .use { loadedDownloads ->
                         while (loadedDownloads.moveToNext()) {
                             val download = loadedDownloads.download
-                            downloads[download.request.uri] = download
-                            // If we want to resume downloads we should make a call here to the download service to begin download for this uri
+                            downloads[download.request.id] = download
+                            //If we want to resume downloads we should make a call here to the download service to begin download for this id
                         }
                     }
             } catch (e: IOException) {
@@ -102,18 +100,22 @@ internal class ExoplayerDownloadTracker @Inject constructor(
         }
     }
 
-    override fun trackDownload(download: ExoplayerDownload) {
-        if (downloads.containsKey(download.request.uri)) {
+    override fun trackDownload(id: String, download: ExoplayerDownload) {
+        if (downloads.containsKey(id) || downloads.containsKey(download.request.uri.toString())) {
             return
         }
-        downloads[download.request.uri] = download
+        downloads[id] = download
     }
 
-    override fun getDownload(uri: Uri): ExoplayerDownload? = downloads[uri]
+    override fun getDownload(id: String, uri: String): ExoplayerDownload? = downloads[id] ?: downloads[uri] //older usage
 
     override fun updateProgress() {
         downloadManager.currentDownloads.forEach { download ->
-            downloads[download.request.uri] = download
+            if(downloads.containsKey(download.request.uri.toString())){
+                downloads[download.request.uri.toString()] = download //older usage
+            } else {
+                downloads[download.request.id] = download
+            }
             TestableDownloadState(download).toDownloadInfo()?.let {
                 dispatchActionsForProgress(it)
             }
@@ -127,7 +129,11 @@ internal class ExoplayerDownloadTracker @Inject constructor(
 
         override fun onDownloadChanged(downloadManager: DownloadManager, download: Download, finalException: Exception?) {
             Log.v(TAG, "onDownloadChanged")
-            downloads[download.request.uri] = download
+            if(downloads.containsKey(download.request.uri.toString())){
+                downloads[download.request.uri.toString()] = download //older usage
+            } else {
+                downloads[download.request.id] = download
+            }
             TestableDownloadState(download).toDownloadInfo()?.let {
                 dispatchActionsForProgress(it)
             }
@@ -138,7 +144,8 @@ internal class ExoplayerDownloadTracker @Inject constructor(
          */
         override fun onDownloadRemoved(downloadManager: DownloadManager, download: ExoplayerDownload) {
             Log.v(TAG, "onDownloadRemoved")
-            downloads.remove(download.request.uri)
+            downloads.remove(download.request.id)
+            downloads.remove(download.request.uri.toString()) //older usage
             TestableDownloadState(download).toDownloadInfo()?.let {
                 dispatchActionsForProgress(it)
             }
@@ -175,6 +182,7 @@ internal class ExoplayerDownloadTracker @Inject constructor(
     }
 
     private fun stopTracking(downloadInfo: DownloadProgressInfo) {
-        downloads.remove(downloadInfo.url.toUri())
+        downloads.remove(downloadInfo.id.toString())
+        downloads.remove(downloadInfo.url) //older usage
     }
 }
