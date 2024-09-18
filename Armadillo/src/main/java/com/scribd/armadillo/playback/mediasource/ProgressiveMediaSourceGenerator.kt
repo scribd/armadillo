@@ -16,7 +16,7 @@ import javax.inject.Inject
 internal class ProgressiveMediaSourceGenerator @Inject constructor(
     private val cacheManager: CacheManager) : MediaSourceGenerator {
 
-    override fun generateMediaSource(context: Context, request: AudioPlayable.MediaRequest): MediaSource =
+    override fun generateMediaSource(mediaId: String, context: Context, request: AudioPlayable.MediaRequest): MediaSource =
         ProgressiveMediaSource.Factory(buildDataSourceFactory(context)).createMediaSource(MediaItem.fromUri(request.url)).also {
             if (request.drmInfo != null) {
                 Log.e(MediaSourceGenerator.TAG, "Progressive media does not currently support DRM")

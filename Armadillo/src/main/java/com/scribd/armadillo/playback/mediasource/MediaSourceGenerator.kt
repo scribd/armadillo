@@ -11,7 +11,7 @@ internal interface MediaSourceGenerator {
         const val TAG = "MediaSourceGenerator"
     }
 
-    fun generateMediaSource(context: Context, request: AudioPlayable.MediaRequest): MediaSource
+    fun generateMediaSource(mediaId: String, context: Context, request: AudioPlayable.MediaRequest): MediaSource
 
     fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest)
 }

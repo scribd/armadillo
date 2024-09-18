@@ -40,7 +40,7 @@ internal interface DownloadEngine {
     fun removeDownload(audioPlayable: AudioPlayable)
     fun removeAllDownloads()
     fun updateProgress()
-    fun redownloadDrmLicense(request: AudioPlayable.MediaRequest)
+    fun redownloadDrmLicense(id: String, request: AudioPlayable.MediaRequest)
 }
 
 /**
@@ -70,15 +70,20 @@ internal class ExoplayerDownloadEngine @Inject constructor(
         scope.launch(errorHandler) {
             launch {
                 // Download DRM license for offline use
-                offlineDrmManager.downloadDrmLicenseForOffline(audioPlayable.request)
+                offlineDrmManager.downloadDrmLicenseForOffline(id = audioPlayable.id.toString(), request = audioPlayable.request)
             }
 
             launch {
-                val downloadHelper = downloadHelper(context, audioPlayable.request)
+                val downloadHelper = downloadHelper(
+                    id = audioPlayable.id.toString(),
+                    context = context,
+                    mediaRequest = audioPlayable.request
+                )
 
                 downloadHelper.prepare(object : DownloadHelper.Callback {
                     override fun onPrepared(helper: DownloadHelper) {
                         val request = helper.getDownloadRequest(audioPlayable.id.encodeInByteArray())
+                                    .copyWithId(audioPlayable.id.toString())
                         try {
                             startDownload(context, request)
                         } catch (e: Exception) {
@@ -99,8 +104,8 @@ internal class ExoplayerDownloadEngine @Inject constructor(
 
     override fun removeDownload(audioPlayable: AudioPlayable) {
         scope.launch(errorHandler) {
-            launch { downloadManager.removeDownload(audioPlayable.request.url) }
-            launch { offlineDrmManager.removeDownloadedDrmLicense(audioPlayable.request) }
+            launch { downloadManager.removeDownload(audioPlayable.id.toString()) }
+            launch { offlineDrmManager.removeDownloadedDrmLicense(id = audioPlayable.id.toString(), request = audioPlayable.request) }
         }
     }
 
@@ -113,10 +118,10 @@ internal class ExoplayerDownloadEngine @Inject constructor(
 
     override fun updateProgress() = downloadTracker.updateProgress()
 
-    override fun redownloadDrmLicense(request: AudioPlayable.MediaRequest) {
+    override fun redownloadDrmLicense(id: String, request: AudioPlayable.MediaRequest) {
         scope.launch(errorHandler) {
             try {
-                offlineDrmManager.downloadDrmLicenseForOffline(request)
+                offlineDrmManager.downloadDrmLicenseForOffline(id = id, request = request)
             } catch (ex: DrmDownloadException){
                 //continue to try and use old license - a playback error appears elsewhere
             }
@@ -126,7 +131,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(
     private fun startDownload(context: Context, downloadRequest: DownloadRequest) =
         DownloadService.sendAddDownload(context, downloadService, downloadRequest, true)
 
-    private fun downloadHelper(context: Context, mediaRequest: AudioPlayable.MediaRequest): DownloadHelper {
+    private fun downloadHelper(id: String, context: Context, mediaRequest: AudioPlayable.MediaRequest): DownloadHelper {
         val uri = mediaRequest.url.toUri()
         val renderersFactory = createRenderersFactory(context)
         val dataSourceFactory = DefaultHttpDataSource.Factory().setUserAgent(Constants.getUserAgent(context))
@@ -139,6 +144,7 @@ internal class ExoplayerDownloadEngine @Inject constructor(
         }
         val mediaItem = MediaItem.Builder()
             .setUri(uri)
+            .setMediaId(id)
             .build()
         return when (@C.ContentType val type = Util.inferContentType(uri)) {
             C.TYPE_HLS,

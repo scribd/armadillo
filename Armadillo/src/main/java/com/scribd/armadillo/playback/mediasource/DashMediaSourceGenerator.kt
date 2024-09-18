@@ -30,20 +30,25 @@ internal class DashMediaSourceGenerator @Inject constructor(
 
     private val drmHandler = Handler(context.mainLooper)
 
-    override fun generateMediaSource(context: Context, request: AudioPlayable.MediaRequest): MediaSource {
+    override fun generateMediaSource(mediaId: String, context: Context, request: AudioPlayable.MediaRequest): MediaSource {
         if (request.drmInfo != null) {
             stateStore.dispatch(OpeningLicenseAction(request.drmInfo.drmType))
         }
         val dataSourceFactory = mediaSourceHelper.createDataSourceFactory(context, request)
 
-        val download = downloadTracker.getDownload(request.url.toUri())
+        val download = downloadTracker.getDownload(id = mediaId, uri = request.url)
         val isDownloaded = download != null && download.state == Download.STATE_COMPLETED
-        val mediaItem = drmMediaSourceHelper.createMediaItem(context = context, request = request, isDownload = isDownloaded)
+        val mediaItem = drmMediaSourceHelper.createMediaItem(
+            context = context,
+            id = mediaId,
+            request = request,
+            isDownload = isDownloaded
+        )
 
         return if (isDownloaded) {
             val drmManager = drmSessionManagerProvider.get(mediaItem)
             if(request.drmInfo?.drmType == DrmType.WIDEVINE) {
-                downloadEngine.redownloadDrmLicense(request)
+                downloadEngine.redownloadDrmLicense(id = mediaId, request = request)
             }
             DownloadHelper.createMediaSource(download!!.request, dataSourceFactory, drmManager)
         } else {

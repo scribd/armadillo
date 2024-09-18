@@ -1,5 +1,9 @@
 # Project Armadillo Release Notes
 
+## 1.6.3
+- Prevents downloaded content with rotating URLs from being lost in the download system after the URL moves.
+- Prevents devices that fail to initialize encrypted storage from crashing during initialization. 
+
 ## 1.6.2
 - Prevents fatal crashing for actions are being performed before the player is initialized
 
