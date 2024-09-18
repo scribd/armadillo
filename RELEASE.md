@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.6.4
+- Resolves download issue resulting in downloaded storage often being out of alignment
+
 ## 1.6.3
 - Prevents downloaded content with rotating URLs from being lost in the download system after the URL moves.
 - Prevents devices that fail to initialize encrypted storage from crashing during initialization. 
