@@ -82,8 +82,8 @@ internal class ExoplayerDownloadEngine @Inject constructor(
 
                 downloadHelper.prepare(object : DownloadHelper.Callback {
                     override fun onPrepared(helper: DownloadHelper) {
-                        var request = helper.getDownloadRequest(audioPlayable.id.encodeInByteArray())
-                        request = request.copyWithId(audioPlayable.id.toString())
+                        val request = helper.getDownloadRequest(audioPlayable.id.encodeInByteArray())
+                                    .copyWithId(audioPlayable.id.toString())
                         try {
                             startDownload(context, request)
                         } catch (e: Exception) {
