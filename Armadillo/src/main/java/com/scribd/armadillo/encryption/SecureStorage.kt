@@ -42,7 +42,7 @@ internal class ArmadilloSecureStorage @Inject constructor(
 
     override fun downloadSecretKey(context: Context): ByteArray {
         return if (secureStandardStorage.contains(DOWNLOAD_KEY)) {
-            val storedKey = secureDrmStorage.getString(DOWNLOAD_KEY, DEFAULT) ?: DEFAULT
+            val storedKey = secureStandardStorage.getString(DOWNLOAD_KEY, DEFAULT) ?: DEFAULT
             if (storedKey == DEFAULT) {
                 Log.e(TAG, "Storage Is Out of Alignment")
             }
