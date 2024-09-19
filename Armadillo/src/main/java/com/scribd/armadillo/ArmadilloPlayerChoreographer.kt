@@ -2,12 +2,15 @@ package com.scribd.armadillo
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting.PRIVATE
 import com.scribd.armadillo.actions.Action
 import com.scribd.armadillo.actions.ErrorAction
 import com.scribd.armadillo.actions.MediaRequestUpdateAction
@@ -65,6 +68,7 @@ interface ArmadilloPlayer {
     fun removeDownload(audioPlayable: AudioPlayable)
     fun removeAllDownloads()
     fun clearCache()
+
     /**
      * Starts playback with the given [AudioPlayable], allowing for configuration through a given [ArmadilloConfiguration]
      */
@@ -189,22 +193,37 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
 
     @Inject
     internal lateinit var context: Context
+
     @Inject
     internal lateinit var downloadEngine: DownloadEngine
+
     @Inject
     internal lateinit var cacheManager: CacheManager
+
     @Inject
     internal lateinit var stateProvider: StateStore.Provider
+
     @Inject
     internal lateinit var stateModifier: StateStore.Modifier
+
     @Inject
     internal lateinit var actionTransmitter: PlaybackActionTransmitter
+
     @Inject
     internal lateinit var mediaContentSharer: ArmadilloMediaBrowse.ContentSharer
 
-    private companion object {
-        const val TAG = "ArmadilloChoreographer"
+    companion object {
+        private const val TAG = "ArmadilloChoreographer"
         private val observerPollIntervalMillis = 500.milliseconds
+
+        @VisibleForTesting(otherwise = PRIVATE)
+        val handlerThread: HandlerThread by lazy {
+            HandlerThread("ArmadilloChoreographer")
+                .also { it.start() }
+        }
+
+        @VisibleForTesting(otherwise = PRIVATE)
+        val handler: Handler by lazy { Handler(handlerThread.looper) }
     }
 
     override val playbackCacheSize: Long
@@ -216,7 +235,7 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
      * emits the most recently emitted state and all the subsequent states when an observer subscribes to it.
      */
     val armadilloStateSubject: BehaviorSubject<ArmadilloState>
-        get() =  stateProvider.stateSubject
+        get() = stateProvider.stateSubject
     override val armadilloStateObservable: Observable<ArmadilloState>
         get() = armadilloStateSubject.observeOn(AndroidSchedulers.mainThread())
 
@@ -235,6 +254,18 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
     @VisibleForTesting
     internal var playbackConnection: MediaSessionConnection? = null
 
+    private fun runHandler(lambda: () -> Unit) {
+        handler.post { lambda() }
+    }
+
+    private fun runIfPlaybackReady(lambda: (controls: MediaControllerCompat.TransportControls, playbackState: PlaybackState) -> Unit) {
+        runHandler {
+            doIfPlaybackReady { controls, playbackState ->
+                lambda(controls, playbackState)
+            }
+        }
+    }
+
     override fun initDownloadEngine(): ArmadilloPlayer {
         isDownloadEngineInit = true
         downloadEngine.init()
@@ -242,27 +273,27 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
         return this
     }
 
-    override fun beginDownload(audioPlayable: AudioPlayable) {
+    override fun beginDownload(audioPlayable: AudioPlayable) = runHandler {
         if (!isDownloadEngineInit) {
             stateModifier.dispatch(ErrorAction(EngineNotInitialized("download engine cannot start download.")))
-            return
+        } else {
+            downloadEngine.download(audioPlayable)
         }
-        downloadEngine.download(audioPlayable)
     }
 
-    override fun clearCache() {
+    override fun clearCache() = runHandler {
         cacheManager.clearPlaybackCache()
     }
 
-    override fun removeAllDownloads() {
+    override fun removeAllDownloads() = runHandler {
         if (!isDownloadEngineInit) {
             stateModifier.dispatch(ErrorAction(EngineNotInitialized("Cannot remove all the downloads.")))
-            return
+        } else {
+            downloadEngine.removeAllDownloads()
         }
-        downloadEngine.removeAllDownloads()
     }
 
-    override fun beginPlayback(audioPlayable: AudioPlayable, config: ArmadilloConfiguration) {
+    override fun beginPlayback(audioPlayable: AudioPlayable, config: ArmadilloConfiguration) = runHandler {
         disposables.clear()
         actionTransmitter.begin(observerPollIntervalMillis)
         val mediaSessionConnection = MediaSessionConnection(context)
@@ -279,25 +310,23 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
         })
     }
 
-    override fun updateMediaRequest(mediaRequest: AudioPlayable.MediaRequest) {
-        doIfPlaybackReady { controls, _ ->
+    override fun updateMediaRequest(mediaRequest: AudioPlayable.MediaRequest) =
+        runIfPlaybackReady { controls, _ ->
             stateModifier.dispatch(MediaRequestUpdateAction(mediaRequest))
             controls.sendCustomAction(CustomAction.UpdateMediaRequest(mediaRequest))
         }
-    }
 
-    override fun updatePlaybackMetadata(title: String, chapters: List<Chapter>) {
+    override fun updatePlaybackMetadata(title: String, chapters: List<Chapter>) =
         doWhenPlaybackReady { controls ->
             stateModifier.dispatch(MetadataUpdateAction(title, chapters))
             controls.sendCustomAction(CustomAction.UpdatePlaybackMetadata(title, chapters))
         }
-    }
 
-    override fun endPlayback() {
+    override fun endPlayback() = runHandler {
         playbackConnection?.transportControls?.stop()
     }
 
-    override fun deinit() {
+    override fun deinit() = runHandler {
         Log.v(TAG, "deinit")
         disposables.clear()
         pollingSubscription = null
@@ -305,58 +334,56 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
         actionTransmitter.destroy()
     }
 
-    override fun playOrPause() {
-        doIfPlaybackReady { controls, playbackState ->
-            when (playbackState) {
-                PlaybackState.PLAYING -> controls.pause()
-                PlaybackState.PAUSED -> controls.play()
-                else -> {
-                    stateModifier.dispatch(ErrorAction(
-                        UnexpectedException(cause = IllegalStateException("Neither playing nor paused"),
-                            actionThatFailedMessage = "Trying to play or pause media."))
-                    )
-                }
+    override fun playOrPause() = runIfPlaybackReady { controls, playbackState ->
+        when (playbackState) {
+            PlaybackState.PLAYING -> controls.pause()
+            PlaybackState.PAUSED -> controls.play()
+            else -> {
+                stateModifier.dispatch(ErrorAction(
+                    UnexpectedException(cause = IllegalStateException("Neither playing nor paused"),
+                        actionThatFailedMessage = "Trying to play or pause media."))
+                )
             }
         }
     }
 
     // Note: chapter skip and jump-skip behaviours are swapped. See MediaSessionCallback - we are using a jump-skip for skip-forward, as
     // most headphones only have a skip-forward button, and this is the ideal behaviour for spoken audio.
-    override fun nextChapter() = doIfPlaybackReady { controls, _ -> controls.fastForward() }
+    override fun nextChapter() = runIfPlaybackReady { controls, _ -> controls.fastForward() }
 
-    override fun previousChapter() = doIfPlaybackReady { controls, _ -> controls.rewind() }
+    override fun previousChapter() = runIfPlaybackReady { controls, _ -> controls.rewind() }
 
-    override fun skipForward() = doIfPlaybackReady { controls, _ -> controls.skipToNext() }
+    override fun skipForward() = runIfPlaybackReady { controls, _ -> controls.skipToNext() }
 
-    override fun skipBackward() = doIfPlaybackReady { controls, _ -> controls.skipToPrevious() }
+    override fun skipBackward() = runIfPlaybackReady { controls, _ -> controls.skipToPrevious() }
 
-    override fun seekTo(position: Milliseconds) = doIfPlaybackReady { controls, _ ->
+    override fun seekTo(position: Milliseconds) = runIfPlaybackReady { controls, _ ->
         // Add a shift constant to all seeks originating from the client application
         // as opposed to system originated, such as from notification
         controls.seekTo(position.longValue + Constants.AUDIO_POSITION_SHIFT_IN_MS)
     }
 
-    override fun seekWithinChapter(percent: Int) {
+    override fun seekWithinChapter(percent: Int) = runHandler {
         val position = stateProvider.currentState.positionFromChapterPercent(percent)
             ?: run {
                 stateModifier.dispatch(ErrorAction(
                     UnexpectedException(cause = KotlinNullPointerException("Current state's position is null"),
                         actionThatFailedMessage = "seeking within chapter"))
                 )
-                return
+                return@runHandler
             }
         seekTo(position)
     }
 
-    override fun removeDownload(audioPlayable: AudioPlayable) {
+    override fun removeDownload(audioPlayable: AudioPlayable) = runHandler {
         if (!isDownloadEngineInit) {
             stateModifier.dispatch(ErrorAction(EngineNotInitialized("Cannot remove a download.")))
-            return
+        } else {
+            downloadEngine.removeDownload(audioPlayable)
         }
-        downloadEngine.removeDownload(audioPlayable)
     }
 
-    override fun addPlaybackActionListener(listener: PlaybackActionListener) {
+    override fun addPlaybackActionListener(listener: PlaybackActionListener) = runHandler {
         PlaybackActionListenerHolder.actionlisteners.add(listener)
     }
 
@@ -370,7 +397,7 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
         mediaContentSharer.browseController = null
     }
 
-    override fun notifyMediaBrowseContentChanged(rootId: String) = mediaContentSharer.notifyContentChanged(rootId)
+    override fun notifyMediaBrowseContentChanged(rootId: String) = runHandler { mediaContentSharer.notifyContentChanged(rootId) }
 
     /**
      * [ArmadilloPlayerChoreographer] polls for updates of playback & downloading

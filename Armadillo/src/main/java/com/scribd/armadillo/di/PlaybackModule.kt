@@ -2,7 +2,6 @@ package com.scribd.armadillo.di
 
 import android.app.Application
 import android.content.Context
-import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
 import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.broadcast.ArmadilloNoisyReceiver
