@@ -1,5 +1,9 @@
 # Project Armadillo Release Notes
 
+## 1.6.6
+- Adds graceful exponential backoff toward internet connectivity errors.
+- Retries streaming parsing exceptions, in case the network has not succeeded in retreiving valid data.
+
 ## 1.6.5
 - ArmadilloPlayer handles client calls from any thread appropriately, without blocking. For those recently updating since 1.5.1, this 
   should resolve any strange bugs from client behavior.

@@ -20,6 +20,7 @@ import com.scribd.armadillo.actions.LicenseDrmErrorAction
 import com.scribd.armadillo.actions.LicenseExpirationDetermined
 import com.scribd.armadillo.actions.LicenseExpiredAction
 import com.scribd.armadillo.actions.LicenseKeyIsUsableAction
+import com.scribd.armadillo.playback.error.ArmadilloHttpErrorHandlingPolicy
 import com.scribd.armadillo.time.milliseconds
 import java.util.UUID
 import javax.inject.Inject
@@ -67,7 +68,7 @@ internal class ArmadilloDrmSessionManagerProvider @Inject constructor(private va
         }
     }
 
-    /** Near identical to DefaultDrmSessionManagerProvider method, except for the indicated line */
+    /** Near identical to DefaultDrmSessionManagerProvider method, except for the indicated lines */
     private fun createManager(drmConfiguration: DrmConfiguration): DrmSessionManager {
         val dataSourceFactory = this.drmHttpDataSourceFactory
             ?: DefaultHttpDataSource.Factory().setUserAgent(this.userAgent)
@@ -84,6 +85,8 @@ internal class ArmadilloDrmSessionManagerProvider @Inject constructor(private va
             .setMultiSession(drmConfiguration.multiSession)
             .setPlayClearSamplesWithoutKeys(drmConfiguration.playClearContentWithoutKey)
             .setUseDrmSessionsForClearContent(*Ints.toArray(drmConfiguration.forcedSessionTrackTypes))
+            //this line is also different, adding custom error handling
+            .setLoadErrorHandlingPolicy(ArmadilloHttpErrorHandlingPolicy())
             .build(httpDrmCallback)
         drmSessionManager.setMode(DefaultDrmSessionManager.MODE_PLAYBACK, drmConfiguration.keySetId)
         return drmSessionManager
