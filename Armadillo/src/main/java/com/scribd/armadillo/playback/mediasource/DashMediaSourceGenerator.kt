@@ -12,7 +12,6 @@ import com.scribd.armadillo.actions.OpeningLicenseAction
 import com.scribd.armadillo.download.DownloadEngine
 import com.scribd.armadillo.download.DownloadTracker
 import com.scribd.armadillo.download.drm.events.WidevineSessionEventListener
-import com.scribd.armadillo.extensions.toUri
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.DrmType
 import javax.inject.Inject
@@ -20,7 +19,7 @@ import javax.inject.Inject
 /** For playback, both streaming and downloaded */
 internal class DashMediaSourceGenerator @Inject constructor(
     context: Context,
-    private val mediaSourceHelper: HeadersMediaSourceHelper,
+    private val mediaSourceFactoryFactory: HeadersMediaSourceFactoryFactory,
     private val downloadTracker: DownloadTracker,
     private val drmMediaSourceHelper: DrmMediaSourceHelper,
     private val drmSessionManagerProvider: DrmSessionManagerProvider,
@@ -34,7 +33,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
         if (request.drmInfo != null) {
             stateStore.dispatch(OpeningLicenseAction(request.drmInfo.drmType))
         }
-        val dataSourceFactory = mediaSourceHelper.createDataSourceFactory(context, request)
+        val dataSourceFactory = mediaSourceFactoryFactory.createDataSourceFactory(context, request)
 
         val download = downloadTracker.getDownload(id = mediaId, uri = request.url)
         val isDownloaded = download != null && download.state == Download.STATE_COMPLETED
@@ -46,29 +45,35 @@ internal class DashMediaSourceGenerator @Inject constructor(
         )
 
         return if (isDownloaded) {
-            val drmManager = drmSessionManagerProvider.get(mediaItem)
-            if(request.drmInfo?.drmType == DrmType.WIDEVINE) {
+            val drmManager = if (request.drmInfo != null) {
+                drmSessionManagerProvider.get(mediaItem)
+            } else null
+
+            if (request.drmInfo?.drmType == DrmType.WIDEVINE) {
                 downloadEngine.redownloadDrmLicense(id = mediaId, request = request)
             }
             DownloadHelper.createMediaSource(download!!.request, dataSourceFactory, drmManager)
         } else {
-            DashMediaSource.Factory(dataSourceFactory)
-                .setDrmSessionManagerProvider(drmSessionManagerProvider)
-                .createMediaSource(mediaItem).also { source ->
-                    //download equivalent is in DashDrmLicenseDownloader
-                    when (request.drmInfo?.drmType) {
-                        DrmType.WIDEVINE -> {
-                            source.addDrmEventListener(
-                                drmHandler,
-                                WidevineSessionEventListener()
-                            )
-                        }
-
-                        else -> Unit //no DRM
+            var factory = DashMediaSource.Factory(dataSourceFactory)
+            if (request.drmInfo != null) {
+                factory = factory.setDrmSessionManagerProvider(drmSessionManagerProvider)
+            }
+            factory.createMediaSource(mediaItem).also { source ->
+                //download equivalent is in DashDrmLicenseDownloader
+                when (request.drmInfo?.drmType) {
+                    DrmType.WIDEVINE -> {
+                        source.addDrmEventListener(
+                            drmHandler,
+                            WidevineSessionEventListener()
+                        )
                     }
+
+                    else -> Unit //no DRM
                 }
+            }
         }
     }
 
-    override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) = mediaSourceHelper.updateMediaSourceHeaders(request)
+    override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) =
+        mediaSourceFactoryFactory.updateMediaSourceHeaders(request)
 }

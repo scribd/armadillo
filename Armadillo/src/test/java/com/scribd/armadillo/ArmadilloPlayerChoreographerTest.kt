@@ -29,7 +29,7 @@ import org.robolectric.annotation.Config
 // Fixes issue in mockito. typealias is insufficient https://github.com/nhaarman/mockito-kotlin/issues/272#issuecomment-513971465
 private interface Callback : (MediaControllerCompat.TransportControls) -> Unit
 
-@Config(manifest = Config.NONE)
+@Config(manifest = Config.NONE, sdk = [25])
 @RunWith(RobolectricTestRunner::class)
 class ArmadilloPlayerChoreographerTest {
     @Rule
@@ -90,6 +90,7 @@ class ArmadilloPlayerChoreographerTest {
         )
         val newRequest = AudioPlayable.MediaRequest.createHttpUri(newUrl, newHeaders)
         choreographer.updateMediaRequest(newRequest)
+        ArmadilloPlayerChoreographer.handler.hasMessages(1) //magic looper processor
 
         verify(choreographer.stateModifier).dispatch(MediaRequestUpdateAction(newRequest))
         verify(transportControls).sendCustomAction(eq("update_media_request"), argWhere {

@@ -2,7 +2,6 @@ package com.scribd.armadillo.di
 
 import android.app.Application
 import android.content.Context
-import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
 import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
 import com.scribd.armadillo.StateStore
 import com.scribd.armadillo.broadcast.ArmadilloNoisyReceiver
@@ -21,8 +20,8 @@ import com.scribd.armadillo.playback.PlaybackStateBuilderImpl
 import com.scribd.armadillo.playback.PlaybackStateCompatBuilder
 import com.scribd.armadillo.playback.mediasource.DrmMediaSourceHelper
 import com.scribd.armadillo.playback.mediasource.DrmMediaSourceHelperImpl
-import com.scribd.armadillo.playback.mediasource.HeadersMediaSourceHelper
-import com.scribd.armadillo.playback.mediasource.HeadersMediaSourceHelperImpl
+import com.scribd.armadillo.playback.mediasource.HeadersMediaSourceFactoryFactory
+import com.scribd.armadillo.playback.mediasource.HeadersMediaSourceFactoryFactoryImpl
 import com.scribd.armadillo.playback.mediasource.MediaSourceRetriever
 import com.scribd.armadillo.playback.mediasource.MediaSourceRetrieverImpl
 import dagger.Module
@@ -67,7 +66,7 @@ internal class PlaybackModule {
 
     @Provides
     @Singleton
-    fun mediaSourceHelper(mediaSourceHelperImpl: HeadersMediaSourceHelperImpl): HeadersMediaSourceHelper = mediaSourceHelperImpl
+    fun mediaSourceHelper(mediaSourceHelperImpl: HeadersMediaSourceFactoryFactoryImpl): HeadersMediaSourceFactoryFactory = mediaSourceHelperImpl
 
     @Provides
     @Singleton

@@ -32,7 +32,7 @@ internal class DrmMediaSourceHelperImpl @Inject constructor(private val secureSt
             .setUri(request.url)
             .apply {
                 // Apply DRM config if content is DRM-protected
-                val drmConfig = request.drmInfo?.let { drmInfo ->
+                request.drmInfo?.let { drmInfo ->
                     MediaItem.DrmConfiguration.Builder(drmInfo.drmType.toExoplayerConstant())
                         .setLicenseUri(drmInfo.licenseServer)
                         .setLicenseRequestHeaders(drmInfo.drmHeaders)
@@ -46,8 +46,9 @@ internal class DrmMediaSourceHelperImpl @Inject constructor(private val secureSt
                             }
                         }
                         .build()
+                }?.let { drmConfig ->
+                    setDrmConfiguration(drmConfig)
                 }
-                setDrmConfiguration(drmConfig)
             }
             .build()
 }

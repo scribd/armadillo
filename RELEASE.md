@@ -1,5 +1,9 @@
 # Project Armadillo Release Notes
 
+## 1.6.5
+- ArmadilloPlayer handles client calls from any thread appropriately, without blocking. For those recently updating since 1.5.1, this 
+  should resolve any strange bugs from client behavior.
+
 ## 1.6.4
 - Resolves download issue resulting in downloaded storage often being out of alignment
 

@@ -8,7 +8,6 @@ import com.google.android.exoplayer2.offline.DownloadHelper
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.scribd.armadillo.download.DownloadTracker
-import com.scribd.armadillo.extensions.toUri
 import com.scribd.armadillo.models.AudioPlayable
 import javax.inject.Inject
 
@@ -17,7 +16,7 @@ import javax.inject.Inject
  *
  */
 internal class HlsMediaSourceGenerator @Inject constructor(
-    private val mediaSourceHelper: HeadersMediaSourceHelper,
+    private val mediaSourceHelper: HeadersMediaSourceFactoryFactory,
     private val downloadTracker: DownloadTracker) : MediaSourceGenerator {
 
 
