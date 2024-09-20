@@ -19,7 +19,7 @@ import javax.inject.Inject
 /** For playback, both streaming and downloaded */
 internal class DashMediaSourceGenerator @Inject constructor(
     context: Context,
-    private val mediaSourceHelper: HeadersMediaSourceHelper,
+    private val mediaSourceFactoryFactory: HeadersMediaSourceFactoryFactory,
     private val downloadTracker: DownloadTracker,
     private val drmMediaSourceHelper: DrmMediaSourceHelper,
     private val drmSessionManagerProvider: DrmSessionManagerProvider,
@@ -33,7 +33,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
         if (request.drmInfo != null) {
             stateStore.dispatch(OpeningLicenseAction(request.drmInfo.drmType))
         }
-        val dataSourceFactory = mediaSourceHelper.createDataSourceFactory(context, request)
+        val dataSourceFactory = mediaSourceFactoryFactory.createDataSourceFactory(context, request)
 
         val download = downloadTracker.getDownload(id = mediaId, uri = request.url)
         val isDownloaded = download != null && download.state == Download.STATE_COMPLETED
@@ -45,7 +45,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
         )
 
         return if (isDownloaded) {
-            val drmManager = if (request.drmInfo == null) {
+            val drmManager = if (request.drmInfo != null) {
                 drmSessionManagerProvider.get(mediaItem)
             } else null
 
@@ -74,5 +74,6 @@ internal class DashMediaSourceGenerator @Inject constructor(
         }
     }
 
-    override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) = mediaSourceHelper.updateMediaSourceHeaders(request)
+    override fun updateMediaSourceHeaders(request: AudioPlayable.MediaRequest) =
+        mediaSourceFactoryFactory.updateMediaSourceHeaders(request)
 }

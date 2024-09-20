@@ -12,10 +12,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-internal class HeadersMediaSourceHelperImpl @Inject constructor(
+internal class HeadersMediaSourceFactoryFactoryImpl @Inject constructor(
     private val cacheManager: CacheManager,
     private val headersStore: HeadersStore
-): HeadersMediaSourceHelper {
+): HeadersMediaSourceFactoryFactory {
     private val previousRequests = mutableMapOf<String, DefaultHttpDataSource.Factory>()
 
     override fun createDataSourceFactory(context: Context, request: AudioPlayable.MediaRequest): DataSource.Factory {
