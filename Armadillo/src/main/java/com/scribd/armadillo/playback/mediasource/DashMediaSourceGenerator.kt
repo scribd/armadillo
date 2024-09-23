@@ -14,6 +14,7 @@ import com.scribd.armadillo.download.DownloadTracker
 import com.scribd.armadillo.download.drm.events.WidevineSessionEventListener
 import com.scribd.armadillo.models.AudioPlayable
 import com.scribd.armadillo.models.DrmType
+import com.scribd.armadillo.playback.error.ArmadilloHttpErrorHandlingPolicy
 import javax.inject.Inject
 
 /** For playback, both streaming and downloaded */
@@ -55,6 +56,7 @@ internal class DashMediaSourceGenerator @Inject constructor(
             DownloadHelper.createMediaSource(download!!.request, dataSourceFactory, drmManager)
         } else {
             var factory = DashMediaSource.Factory(dataSourceFactory)
+                .setLoadErrorHandlingPolicy(ArmadilloHttpErrorHandlingPolicy())
             if (request.drmInfo != null) {
                 factory = factory.setDrmSessionManagerProvider(drmSessionManagerProvider)
             }

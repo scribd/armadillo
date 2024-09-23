@@ -19,7 +19,10 @@ Welcome to Project Armadillo, a delightful audio player for Android.
 
 ## What is Armadillo?
 
-Armadillo is a fully featured audio player. Armadillo leverages [Google's Exoplayer](https://github.com/google/ExoPlayer/) library for its audio engine. Exoplayer wraps a variety of low level audio and video apis but has few opinions of its own for actually using audio in an Android app. The leap required from Exoplayer to audio player is enormous both in terms of the amount of code needed as well as the amount of domain knowledge required about complex audio related subjects. Armadillo provides a turn key solution for powering an audio player and providing the information to update a UI.
+Armadillo is a fully featured audio player. Armadillo leverages [Google's Exoplayer](https://github.com/google/ExoPlayer/) library for 
+its audio engine. Exoplayer wraps a variety of low level audio and video apis but has few opinions of its own for actually using 
+internet based audio in an Android app. The leap required from Exoplayer to audio player is enormous both in terms of the amount of code 
+needed as well as the amount of domain knowledge required about complex audio related subjects. Armadillo provides a turn key solution for powering an audio player and providing the information to update a UI.
 
 - **Easy-to-use** because it outputs state updates with everything needed for a UI or analytics. Works in the background state.
 - **Effective** because it uses [Google's Exoplayer](https://github.com/google/ExoPlayer/) as the playback engine.
