@@ -20,8 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.lang.Exception
-import java.util.HashMap
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -111,7 +109,7 @@ internal class ExoplayerDownloadTracker @Inject constructor(
 
     override fun updateProgress() {
         downloadManager.currentDownloads.forEach { download ->
-            if(downloads.containsKey(download.request.uri.toString())){
+            if (downloads.containsKey(download.request.uri.toString())) {
                 downloads[download.request.uri.toString()] = download //older usage
             } else {
                 downloads[download.request.id] = download
@@ -129,7 +127,7 @@ internal class ExoplayerDownloadTracker @Inject constructor(
 
         override fun onDownloadChanged(downloadManager: DownloadManager, download: Download, finalException: Exception?) {
             Log.v(TAG, "onDownloadChanged")
-            if(downloads.containsKey(download.request.uri.toString())){
+            if (downloads.containsKey(download.request.uri.toString())) {
                 downloads[download.request.uri.toString()] = download //older usage
             } else {
                 downloads[download.request.id] = download
@@ -155,6 +153,7 @@ internal class ExoplayerDownloadTracker @Inject constructor(
     @VisibleForTesting
     fun dispatchActionsForProgress(downloadInfo: DownloadProgressInfo) {
         val taskFailed = downloadInfo.isFailed()
+        val exoplayerDownloadState = downloadInfo.exoPlayerDownloadState
         val isRemoveDownloadComplete = downloadInfo.downloadState is DownloadState.REMOVED
         val isDownloadComplete = downloadInfo.isDownloaded()
 
@@ -173,7 +172,13 @@ internal class ExoplayerDownloadTracker @Inject constructor(
         }
 
         if (taskFailed) {
-            actions.add(ErrorAction(DownloadFailed()))
+            actions.add(ErrorAction(DownloadFailed(
+                mapOf(
+                    "exo_player_download_state" to exoplayerDownloadState.toString(),
+                    "is_download_complete" to isDownloadComplete.toString(),
+                    "failure_reason" to (downloadInfo.downloadState as? DownloadState.FAILED)?.failureReason.toString()
+                )
+            )))
         }
 
         actions.forEach {

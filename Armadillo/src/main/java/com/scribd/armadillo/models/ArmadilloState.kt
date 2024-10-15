@@ -98,11 +98,12 @@ data class MediaControlState(
 data class DownloadProgressInfo(
     val id: Int,
     val url: String,
-    val downloadState: DownloadState) {
+    val downloadState: DownloadState,
+    val exoPlayerDownloadState: Int? = null) {
 
     fun isDownloaded(): Boolean = DownloadState.COMPLETED == downloadState
 
-    fun isFailed(): Boolean = DownloadState.FAILED == downloadState
+    fun isFailed(): Boolean = downloadState is DownloadState.FAILED
 
     companion object {
         const val PROGRESS_UNSET = C.PERCENTAGE_UNSET
@@ -129,25 +130,25 @@ sealed class DownloadState {
         override fun toString() = "REMOVED"
     }
 
-    object FAILED : DownloadState() {
+    data class FAILED(val failureReason: Int? = null) : DownloadState() {
         override fun toString() = "FAILED"
     }
 }
 
 data class InternalState(val isPlaybackEngineReady: Boolean = false)
 
-sealed class DrmState (val drmType: DrmType?, val expireMillis: Milliseconds, val isSessionValid: Boolean) {
+sealed class DrmState(val drmType: DrmType?, val expireMillis: Milliseconds, val isSessionValid: Boolean) {
     /** This Content is not utilizing DRM protections, or is now first initializing **/
     object NoDRM : DrmState(null, 0.milliseconds, true)
 
     /** Attempt to open the license and decrypt */
-    class LicenseOpening(drmType: DrmType?, expireMillis: Milliseconds = 0.milliseconds): DrmState(drmType, expireMillis, true)
+    class LicenseOpening(drmType: DrmType?, expireMillis: Milliseconds = 0.milliseconds) : DrmState(drmType, expireMillis, true)
 
     /** A DRM License has been obtained. */
-    class LicenseAcquired(drmType: DrmType, expireMillis: Milliseconds): DrmState(drmType, expireMillis, true)
+    class LicenseAcquired(drmType: DrmType, expireMillis: Milliseconds) : DrmState(drmType, expireMillis, true)
 
     /** The player encountered an expiration event */
-    class LicenseExpired(drmType: DrmType?, expireMillis: Milliseconds): DrmState(drmType, expireMillis, false)
+    class LicenseExpired(drmType: DrmType?, expireMillis: Milliseconds) : DrmState(drmType, expireMillis, false)
 
     /** A DRM license exists and content is able to be decrypted. */
     class LicenseUsable(drmType: DrmType?, expireMillis: Milliseconds) : DrmState(drmType, expireMillis, true)
