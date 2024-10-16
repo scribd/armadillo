@@ -3,6 +3,7 @@ package com.scribd.armadillo.playback
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlaybackException.TYPE_RENDERER
 import com.google.android.exoplayer2.ExoPlaybackException.TYPE_SOURCE
+import com.google.android.exoplayer2.ParserException
 import com.google.android.exoplayer2.audio.AudioSink
 import com.google.android.exoplayer2.drm.MediaDrmCallbackException
 import com.google.android.exoplayer2.upstream.DataSpec
@@ -11,11 +12,13 @@ import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.ArmadilloIOException
 import com.scribd.armadillo.error.ConnectivityException
 import com.scribd.armadillo.error.HttpResponseCodeException
+import com.scribd.armadillo.error.ParsingException
 import com.scribd.armadillo.error.RendererConfigurationException
 import com.scribd.armadillo.error.RendererInitializationException
 import com.scribd.armadillo.error.RendererWriteException
 import com.scribd.armadillo.error.UnexpectedException
 import com.scribd.armadillo.error.UnknownRendererException
+import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
@@ -38,7 +41,16 @@ internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
                 is UnknownHostException,
                 is SocketTimeoutException -> ConnectivityException(source)
 
-                else -> ArmadilloIOException(cause = this, actionThatFailedMessage = "Exoplayer error.")
+                else -> {
+                    var cause: Throwable? = source
+                    while (source.cause != null && cause !is ParserException) {
+                        cause = source.cause
+                    }
+                    when (cause) {
+                        is ParserException -> ParsingException(cause = this)
+                        else -> ArmadilloIOException(cause = this, actionThatFailedMessage = "Exoplayer error.")
+                    }
+                }
             }
         }
     } else if (TYPE_RENDERER == type) {

@@ -100,6 +100,11 @@ class ConnectivityException(cause: Exception)
     override val errorCode: Int = 206
 }
 
+class ParsingException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "The content cannot be parsed and it is not playable: ${cause.message}") {
+    override val errorCode = 207
+}
+
 /**
  * Download Errors
  */
