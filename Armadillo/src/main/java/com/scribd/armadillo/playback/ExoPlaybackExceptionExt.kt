@@ -1,5 +1,6 @@
 package com.scribd.armadillo.playback
 
+import android.content.Context
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlaybackException.TYPE_RENDERER
 import com.google.android.exoplayer2.ExoPlaybackException.TYPE_SOURCE
@@ -18,24 +19,25 @@ import com.scribd.armadillo.error.RendererInitializationException
 import com.scribd.armadillo.error.RendererWriteException
 import com.scribd.armadillo.error.UnexpectedException
 import com.scribd.armadillo.error.UnknownRendererException
-import java.io.IOException
+import com.scribd.armadillo.isInternetAvailable
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
+internal fun ExoPlaybackException.toArmadilloException(context: Context): ArmadilloException {
     return if (TYPE_SOURCE == type) {
         return this.sourceException.let { source ->
             when (source) {
                 is HttpDataSource.InvalidResponseCodeException ->
-                    HttpResponseCodeException(source.responseCode, source.dataSpec.uri.toString(), source, source.dataSpec.toAnalyticsMap())
+                    HttpResponseCodeException(source.responseCode, source.dataSpec.uri.toString(), source, source.dataSpec.toAnalyticsMap
+                    (context))
 
                 is HttpDataSource.HttpDataSourceException ->
-                    HttpResponseCodeException(source.reason, source.dataSpec.uri.toString(), source, source.dataSpec.toAnalyticsMap())
+                    HttpResponseCodeException(source.reason, source.dataSpec.uri.toString(), source, source.dataSpec.toAnalyticsMap(context))
 
                 is MediaDrmCallbackException -> {
                     val httpCause = source.cause as? HttpDataSource.InvalidResponseCodeException
                     HttpResponseCodeException(httpCause?.responseCode
-                        ?: 0, httpCause?.dataSpec?.uri.toString(), source, source.dataSpec.toAnalyticsMap())
+                        ?: 0, httpCause?.dataSpec?.uri.toString(), source, source.dataSpec.toAnalyticsMap(context))
                 }
 
                 is UnknownHostException,
@@ -67,7 +69,7 @@ internal fun ExoPlaybackException.toArmadilloException(): ArmadilloException {
     }
 }
 
-private fun DataSpec.toAnalyticsMap(): Map<String, String> {
+private fun DataSpec.toAnalyticsMap(context: Context): Map<String, String> {
     return mapOf(
         "uri" to uri.toString(),
         "uriPositionOffset" to uriPositionOffset.toString(),
@@ -76,6 +78,7 @@ private fun DataSpec.toAnalyticsMap(): Map<String, String> {
         "length" to length.toString(),
         "key" to key.toString(),
         "flags" to flags.toString(),
-        "customData" to customData.toString()
+        "customData" to customData.toString(),
+        "isInternetConnected" to isInternetAvailable(context).toString(),
     )
 }

@@ -105,7 +105,8 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
     @VisibleForTesting
     internal lateinit var exoPlayer: ExoPlayer
 
-    private val playerEventListener = PlayerEventListener()
+    @Inject
+    internal lateinit var playerEventListener: PlayerEventListener
 
     override val currentChapterIndex: Int
         get() = audioPlayable.chapters.indexOf(currentChapter)
@@ -155,7 +156,7 @@ internal class ExoplayerPlaybackEngine(private var audioPlayable: AudioPlayable)
             stateModifier.dispatch(PlaybackEngineReady(true))
             stateModifier.dispatch(PlayerStateAction(PlaybackState.PAUSED))
         } catch (ex: Exception) {
-            val armadilloException = if(ex is ArmadilloException) ex else PlaybackStartFailureException(cause = ex)
+            val armadilloException = if (ex is ArmadilloException) ex else PlaybackStartFailureException(cause = ex)
             stateModifier.dispatch(ErrorAction(armadilloException))
         }
     }

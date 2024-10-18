@@ -18,6 +18,7 @@ import com.scribd.armadillo.playback.MediaMetadataCompatBuilderImpl
 import com.scribd.armadillo.playback.PlaybackEngineFactoryHolder
 import com.scribd.armadillo.playback.PlaybackStateBuilderImpl
 import com.scribd.armadillo.playback.PlaybackStateCompatBuilder
+import com.scribd.armadillo.playback.PlayerEventListener
 import com.scribd.armadillo.playback.mediasource.DrmMediaSourceHelper
 import com.scribd.armadillo.playback.mediasource.DrmMediaSourceHelperImpl
 import com.scribd.armadillo.playback.mediasource.HeadersMediaSourceFactoryFactory
@@ -75,4 +76,8 @@ internal class PlaybackModule {
     @Provides
     @Singleton
     fun drmSessionManagerProvider(stateStore: StateStore.Modifier): DrmSessionManagerProvider = ArmadilloDrmSessionManagerProvider(stateStore)
+
+    @Provides
+    @Singleton
+    fun playerEventListener(context: Context): PlayerEventListener = PlayerEventListener(context)
 }
