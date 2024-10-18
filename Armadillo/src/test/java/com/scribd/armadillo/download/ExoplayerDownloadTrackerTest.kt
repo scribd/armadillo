@@ -45,7 +45,7 @@ class ExoplayerDownloadTrackerTest {
 
     @Test
     fun dispatchActionsForProgress_taskFailed_dispatchesActions() {
-        downloadInfo = DownloadProgressInfo(ID, URL, DownloadState.FAILED)
+        downloadInfo = DownloadProgressInfo(ID, URL, DownloadState.FAILED())
         exoplayerDownloadTracker.dispatchActionsForProgress(downloadInfo)
         verify(stateModifier).dispatch(UpdateDownloadAction(downloadInfo))
         verify(stateModifier).dispatch(isA<ErrorAction>())

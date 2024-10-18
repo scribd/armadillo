@@ -14,7 +14,8 @@ internal data class TestableDownloadState(val id: Int,
                                           val url: String,
                                           val state: Int,
                                           val downloadPercentage: Int,
-                                          val downloadedBytes: Long) {
+                                          val downloadedBytes: Long,
+                                          val failureReason: Int? = null) {
     companion object {
         const val QUEUED = ExoplayerDownload.STATE_QUEUED
         const val COMPLETED = ExoplayerDownload.STATE_COMPLETED
@@ -24,11 +25,12 @@ internal data class TestableDownloadState(val id: Int,
     }
 
     constructor(download: ExoplayerDownload) : this(
-            download.request.data.decodeToInt(),
-            download.request.uri.toString(),
-            download.state,
-            download.percentDownloaded.toInt(),
-            download.bytesDownloaded)
+        download.request.data.decodeToInt(),
+        download.request.uri.toString(),
+        download.state,
+        download.percentDownloaded.toInt(),
+        download.bytesDownloaded,
+        download.failureReason)
 
     /**
      * This method converts [TestableDownloadState] (a testable wrapper fo exoplayer's [DownloadManager.TaskState])
@@ -47,13 +49,15 @@ internal data class TestableDownloadState(val id: Int,
                 }
                 DownloadState.STARTED(percent, downloadedBytes)
             }
+
             QUEUED -> return null
-            else -> DownloadState.FAILED
+            else -> DownloadState.FAILED(failureReason)
         }
 
         return DownloadProgressInfo(
-                id = id,
-                url = url,
-                downloadState = downloadState)
+            id = id,
+            url = url,
+            downloadState = downloadState,
+            exoPlayerDownloadState = state)
     }
 }

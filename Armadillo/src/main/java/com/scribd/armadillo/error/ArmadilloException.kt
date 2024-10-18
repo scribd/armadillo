@@ -57,8 +57,12 @@ class InvalidRequest(message: String)
 /**
  * Playback Errors
  */
-data class HttpResponseCodeException(val responseCode: Int, val url: String?, override val cause: Exception)
-    : ArmadilloException(cause = cause, message = "HTTP Error $responseCode.", isNetworkRelatedError = true) {
+data class HttpResponseCodeException(
+    val responseCode: Int,
+    val url: String?,
+    override val cause: Exception,
+    val extraData: Map<String, String> = emptyMap(),
+) : ArmadilloException(cause = cause, message = "HTTP Error $responseCode.", isNetworkRelatedError = true) {
     override val errorCode: Int = 200
 }
 
@@ -96,6 +100,11 @@ class ConnectivityException(cause: Exception)
     override val errorCode: Int = 206
 }
 
+class ParsingException(cause: Exception)
+    : ArmadilloException(cause = cause, message = "The content cannot be parsed and it is not playable: ${cause.message}") {
+    override val errorCode = 207
+}
+
 /**
  * Download Errors
  */
@@ -104,7 +113,7 @@ class MissingInfoDownloadException(message: String)
     override val errorCode = 301
 }
 
-class DownloadFailed
+class DownloadFailed(val extraData: Map<String, String>)
     : ArmadilloException(message = "The download has failed to finish.", isNetworkRelatedError = true) {
     override val errorCode = 302
 }

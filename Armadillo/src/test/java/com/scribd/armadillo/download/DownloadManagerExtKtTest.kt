@@ -15,14 +15,15 @@ class DownloadManagerExtKtTest {
     }
 
     private lateinit var downloadState: TestableDownloadState
+
     @Before
     fun setUp() {
         downloadState = TestableDownloadState(
-                ID,
-                URL,
-                TestableDownloadState.COMPLETED,
-                DOWNLOAD_PERCENT,
-                DOWNLOADED_BYTES)
+            ID,
+            URL,
+            TestableDownloadState.COMPLETED,
+            DOWNLOAD_PERCENT,
+            DOWNLOADED_BYTES)
     }
 
     @Test
@@ -35,7 +36,7 @@ class DownloadManagerExtKtTest {
     @Test
     fun toDownloadInfo_downloadRemovalComplete_returnsRemoveProgress() {
         val state = downloadState.copy(
-                state = TestableDownloadState.REMOVING)
+            state = TestableDownloadState.REMOVING)
         val downloadInfo = state.toDownloadInfo()!!
         assertThat(downloadInfo.id).isEqualTo(ID)
         assertThat(downloadInfo.url).isEqualTo(URL)
@@ -45,7 +46,7 @@ class DownloadManagerExtKtTest {
     @Test
     fun toDownloadInfo_downloadComplete_returnsCompletedProgress() {
         val state = downloadState.copy(
-                state = TestableDownloadState.COMPLETED)
+            state = TestableDownloadState.COMPLETED)
         val downloadInfo = state.toDownloadInfo()!!
         assertThat(downloadInfo.id).isEqualTo(ID)
         assertThat(downloadInfo.url).isEqualTo(URL)
@@ -55,8 +56,8 @@ class DownloadManagerExtKtTest {
     @Test
     fun toDownloadInfo_downloadProgressJustBegan_returnsProgress() {
         val state = downloadState.copy(
-                state = TestableDownloadState.IN_PROGRESS,
-                downloadPercentage = DownloadProgressInfo.PROGRESS_UNSET)
+            state = TestableDownloadState.IN_PROGRESS,
+            downloadPercentage = DownloadProgressInfo.PROGRESS_UNSET)
         val downloadInfo = state.toDownloadInfo()!!
         assertThat(downloadInfo.id).isEqualTo(ID)
         assertThat(downloadInfo.url).isEqualTo(URL)
@@ -66,7 +67,7 @@ class DownloadManagerExtKtTest {
     @Test
     fun toDownloadInfo_downloadProgressWithProgress_returnsProgress() {
         val state = downloadState.copy(
-                state = TestableDownloadState.IN_PROGRESS)
+            state = TestableDownloadState.IN_PROGRESS)
         val downloadInfo = state.toDownloadInfo()!!
         assertThat(downloadInfo.id).isEqualTo(ID)
         assertThat(downloadInfo.url).isEqualTo(URL)
@@ -76,10 +77,10 @@ class DownloadManagerExtKtTest {
     @Test
     fun toDownloadInfo_unknownState_returnsFailed() {
         val state = downloadState.copy(
-                state = 1000)
+            state = 1000)
         val downloadInfo = state.toDownloadInfo()!!
         assertThat(downloadInfo.id).isEqualTo(ID)
         assertThat(downloadInfo.url).isEqualTo(URL)
-        assertThat(downloadInfo.downloadState).isEqualTo(DownloadState.FAILED)
+        assertThat(downloadInfo.downloadState).isEqualTo(DownloadState.FAILED())
     }
 }
