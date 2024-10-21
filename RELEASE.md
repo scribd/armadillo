@@ -1,5 +1,10 @@
 # Project Armadillo Release Notes
 
+## 1.6.7
+- Adds additional data in audio player errors: HttpResponseCodeException, DownloadFailed
+- Add new ParsingException for internal ParserException
+- Add internet connectivity check to error metrics
+
 ## 1.6.6
 - Adds graceful exponential backoff toward internet connectivity errors.
 - Retries streaming parsing exceptions, in case the network has not succeeded in retreiving valid data.
