@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.6.8
+- Fixes an app startup crash to EncryptedSharedPreference faults. 
+
 ## 1.6.7
 - Adds additional data in audio player errors: HttpResponseCodeException, DownloadFailed
 - Add new ParsingException for internal ParserException

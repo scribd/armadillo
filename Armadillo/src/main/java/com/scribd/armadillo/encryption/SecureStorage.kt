@@ -28,9 +28,9 @@ internal interface SecureStorage {
 @Singleton
 internal class ArmadilloSecureStorage @Inject constructor(
     @Named(Constants.DI.STANDARD_STORAGE) private val legacyStandardStorage: SharedPreferences,
-    @Named(Constants.DI.STANDARD_SECURE_STORAGE) private val secureStandardStorage: SharedPreferences,
+    @Named(Constants.DI.STANDARD_SECURE_STORAGE) private val secureStandardStorage: SharedPreferences?,
     @Named(Constants.DI.DRM_DOWNLOAD_STORAGE) private val legacyDrmStorage: SharedPreferences,
-    @Named(Constants.DI.DRM_SECURE_STORAGE) private val secureDrmStorage: SharedPreferences
+    @Named(Constants.DI.DRM_SECURE_STORAGE) private val secureDrmStorage: SharedPreferences?
 ) : SecureStorage {
     companion object {
         const val DOWNLOAD_KEY = "download_key"
@@ -41,26 +41,31 @@ internal class ArmadilloSecureStorage @Inject constructor(
     }
 
     override fun downloadSecretKey(context: Context): ByteArray {
-        return if (secureStandardStorage.contains(DOWNLOAD_KEY)) {
+        return if (secureStandardStorage?.contains(DOWNLOAD_KEY) == true) {
             val storedKey = secureStandardStorage.getString(DOWNLOAD_KEY, DEFAULT) ?: DEFAULT
             if (storedKey == DEFAULT) {
                 Log.e(TAG, "Storage Is Out of Alignment")
             }
             storedKey.toSecretByteArray
-        } else if(legacyStandardStorage.contains(DOWNLOAD_KEY)) {
+        } else if (legacyStandardStorage.contains(DOWNLOAD_KEY)) {
             //migrate to secured version
             val storedKey = legacyStandardStorage.getString(DOWNLOAD_KEY, DEFAULT) ?: DEFAULT
             if (storedKey == DEFAULT) {
                 Log.e(TAG, "Storage Is Out of Alignment")
             }
-            secureStandardStorage.edit().putString(DOWNLOAD_KEY, storedKey).apply()
-            legacyStandardStorage.edit().remove(DOWNLOAD_KEY).apply()
+            if (secureStandardStorage != null) {
+                secureStandardStorage.edit().putString(DOWNLOAD_KEY, storedKey).apply()
+                legacyStandardStorage.edit().remove(DOWNLOAD_KEY).apply()
+            }
             storedKey.toSecretByteArray
-        } else {
+        } else if (secureStandardStorage != null) {
             //no key exists anywhere yet
             createRandomString().also {
                 secureStandardStorage.edit().putString(DOWNLOAD_KEY, it).apply()
             }.toSecretByteArray
+        } else {
+            "".toSecretByteArray
+            //we've attempted to create 2 sharedPrefs by this point, so this shouldn't happen. Let exoplayer fail to decrypt
         }
     }
 
@@ -73,28 +78,30 @@ internal class ArmadilloSecureStorage @Inject constructor(
     override fun saveDrmDownload(context: Context, id: String, drmDownload: DrmDownload) {
         val alias = getDrmDownloadAlias(id, drmDownload.drmType)
         val value = Base64.encodeToString(Json.encodeToString(drmDownload).toByteArray(StandardCharsets.UTF_8), Base64.NO_WRAP)
-        secureDrmStorage.edit().putString(alias, value).apply()
+        secureDrmStorage?.edit()?.putString(alias, value)?.apply()
     }
 
     override fun getDrmDownload(context: Context, id: String, drmType: DrmType): DrmDownload? {
         val alias = getDrmDownloadAlias(id, drmType)
-        var download = secureDrmStorage.getString(alias, null)?.decodeToDrmDownload()
+        var download = secureDrmStorage?.getString(alias, null)?.decodeToDrmDownload()
         if (download == null && legacyDrmStorage.contains(alias)) {
             //migrate old storage to secure storage
             val downloadValue = legacyDrmStorage.getString(alias, null)
             download = downloadValue?.decodeToDrmDownload()
-            secureDrmStorage.edit().putString(alias, downloadValue).apply()
-            legacyDrmStorage.edit().remove(alias).apply()
+            if (secureDrmStorage != null) {
+                secureDrmStorage.edit().putString(alias, downloadValue).apply()
+                legacyDrmStorage.edit().remove(alias).apply()
+            }
         }
         return download
     }
 
     override fun getAllDrmDownloads(context: Context): Map<String, DrmDownload> {
-        val drmDownloads = secureDrmStorage.all.keys.mapNotNull { alias ->
+        val drmDownloads = secureDrmStorage?.all?.keys?.mapNotNull { alias ->
             secureDrmStorage.getString(alias, null)?.let { drmResult ->
                 alias to drmResult.decodeToDrmDownload()
             }
-        }.toMap()
+        }?.toMap() ?: emptyMap()
         val legacyDownloads = legacyDrmStorage.all.keys.mapNotNull { alias ->
             legacyDrmStorage.getString(alias, null)?.let { drmResult ->
                 alias to drmResult.decodeToDrmDownload()
@@ -107,12 +114,12 @@ internal class ArmadilloSecureStorage @Inject constructor(
     override fun removeDrmDownload(context: Context, id: String, drmType: DrmType) {
         val alias = getDrmDownloadAlias(id, drmType)
         legacyDrmStorage.edit().remove(alias).apply()
-        secureDrmStorage.edit().remove(alias).apply()
+        secureDrmStorage?.edit()?.remove(alias)?.apply()
     }
 
     override fun removeDrmDownload(context: Context, key: String) {
         legacyDrmStorage.edit().remove(key).apply()
-        secureDrmStorage.edit().remove(key).apply()
+        secureDrmStorage?.edit()?.remove(key)?.apply()
     }
 
     private val String.toSecretByteArray: ByteArray

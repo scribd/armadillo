@@ -30,6 +30,7 @@ object Constants {
     internal object Keys {
         const val KEY_ARMADILLO_CONFIG = "armadillo_config"
         const val KEY_AUDIO_PLAYABLE = "audio_playable"
+        const val ANDROID_KEYSTORE_NAME= "AndroidKeyStore"
     }
 
     internal object DI {
@@ -40,6 +41,11 @@ object Constants {
         const val EXOPLAYER_CACHE_DIRECTORY = "exoplayer_cache_directory"
 
         const val GLOBAL_SCOPE = "global_scope"
+
+        const val DOWNLOAD_STORE_ALIAS="armadillo"
+        const val DOWNLOAD_STORE_FILENAME="armadillo.download.secure"
+        const val STANDARD_STORE_ALIAS="armadilloStandard"
+        const val STANDARD_STORE_FILENAME="armadillo.standard.secure"
 
         const val STANDARD_STORAGE = "standard_storage"
         const val STANDARD_SECURE_STORAGE = "standard_secure_storage"
