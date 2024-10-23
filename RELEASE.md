@@ -2,6 +2,7 @@
 
 ## 1.6.8
 - Fixes an app startup crash to EncryptedSharedPreference faults. 
+- Adds resilience to playing unencrypted content if it is optionally drm enabled.
 
 ## 1.6.7
 - Adds additional data in audio player errors: HttpResponseCodeException, DownloadFailed

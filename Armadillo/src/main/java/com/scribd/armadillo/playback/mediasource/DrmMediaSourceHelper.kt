@@ -31,23 +31,28 @@ internal class DrmMediaSourceHelperImpl @Inject constructor(private val secureSt
         MediaItem.Builder()
             .setUri(request.url)
             .apply {
-                // Apply DRM config if content is DRM-protected
-                request.drmInfo?.let { drmInfo ->
-                    MediaItem.DrmConfiguration.Builder(drmInfo.drmType.toExoplayerConstant())
-                        .setLicenseUri(drmInfo.licenseServer)
-                        .setLicenseRequestHeaders(drmInfo.drmHeaders)
-                        .apply {
-                            // If the content is a download content, use the saved offline DRM key id.
-                            // This ID is needed to retrieve the local DRM license for content decryption.
-                            if (isDownload) {
-                                secureStorage.getDrmDownload(context = context, id =  id, drmType = drmInfo.drmType)?.let { drmDownload ->
-                                    setKeySetId(drmDownload.drmKeyId)
-                                } ?: throw DrmPlaybackException(IllegalStateException("No DRM key id saved for download content"))
+                try {
+                    // Apply DRM config if content is DRM-protected
+                    request.drmInfo?.let { drmInfo ->
+                        MediaItem.DrmConfiguration.Builder(drmInfo.drmType.toExoplayerConstant())
+                            .setLicenseUri(drmInfo.licenseServer)
+                            .setLicenseRequestHeaders(drmInfo.drmHeaders)
+                            .apply {
+                                // If the content is a download content, use the saved offline DRM key id.
+                                // This ID is needed to retrieve the local DRM license for content decryption.
+                                if (isDownload) {
+                                    secureStorage.getDrmDownload(context = context, id = id, drmType = drmInfo.drmType)?.let { drmDownload ->
+                                        setKeySetId(drmDownload.drmKeyId)
+                                    } ?: throw DrmPlaybackException(IllegalStateException("No DRM key id saved for download content"))
+                                }
                             }
-                        }
-                        .build()
-                }?.let { drmConfig ->
-                    setDrmConfiguration(drmConfig)
+                            .build()
+                    }?.let { drmConfig ->
+                        setDrmConfiguration(drmConfig)
+                    }
+                } catch (ex: DrmPlaybackException) {
+                    //attempt to load unencrypted, there's a chance the user supplied excessive DRMInfo. An exception will
+                    // be raised elsewhere if this content can't be decrypted.
                 }
             }
             .build()

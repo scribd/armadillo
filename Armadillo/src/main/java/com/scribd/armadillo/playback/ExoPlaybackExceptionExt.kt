@@ -6,12 +6,14 @@ import com.google.android.exoplayer2.ExoPlaybackException.TYPE_RENDERER
 import com.google.android.exoplayer2.ExoPlaybackException.TYPE_SOURCE
 import com.google.android.exoplayer2.ParserException
 import com.google.android.exoplayer2.audio.AudioSink
+import com.google.android.exoplayer2.drm.DrmSession.DrmSessionException
 import com.google.android.exoplayer2.drm.MediaDrmCallbackException
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.scribd.armadillo.error.ArmadilloException
 import com.scribd.armadillo.error.ArmadilloIOException
 import com.scribd.armadillo.error.ConnectivityException
+import com.scribd.armadillo.error.DrmPlaybackException
 import com.scribd.armadillo.error.HttpResponseCodeException
 import com.scribd.armadillo.error.ParsingException
 import com.scribd.armadillo.error.RendererConfigurationException
@@ -38,6 +40,9 @@ internal fun ExoPlaybackException.toArmadilloException(context: Context): Armadi
                     val httpCause = source.cause as? HttpDataSource.InvalidResponseCodeException
                     HttpResponseCodeException(httpCause?.responseCode
                         ?: 0, httpCause?.dataSpec?.uri.toString(), source, source.dataSpec.toAnalyticsMap(context))
+                }
+                is DrmSessionException -> {
+                    DrmPlaybackException(cause = this)
                 }
 
                 is UnknownHostException,
