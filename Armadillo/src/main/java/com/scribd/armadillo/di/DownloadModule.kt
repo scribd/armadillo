@@ -2,13 +2,6 @@ package com.scribd.armadillo.di
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties.BLOCK_MODE_GCM
-import android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE
-import android.security.keystore.KeyProperties.PURPOSE_DECRYPT
-import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
 import com.google.android.exoplayer2.offline.DownloadManager
 import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.offline.DownloaderFactory
@@ -17,6 +10,10 @@ import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.scribd.armadillo.Constants
+import com.scribd.armadillo.Constants.DI.DOWNLOAD_STORE_ALIAS
+import com.scribd.armadillo.Constants.DI.DOWNLOAD_STORE_FILENAME
+import com.scribd.armadillo.Constants.DI.STANDARD_STORE_ALIAS
+import com.scribd.armadillo.Constants.DI.STANDARD_STORE_FILENAME
 import com.scribd.armadillo.download.ArmadilloDatabaseProvider
 import com.scribd.armadillo.download.ArmadilloDatabaseProviderImpl
 import com.scribd.armadillo.download.ArmadilloDownloadManagerFactory
@@ -35,10 +32,10 @@ import com.scribd.armadillo.encryption.ExoplayerEncryption
 import com.scribd.armadillo.encryption.ExoplayerEncryptionImpl
 import com.scribd.armadillo.encryption.SecureStorage
 import com.scribd.armadillo.exoplayerExternalDirectory
+import com.scribd.armadillo.extensions.createEncryptedSharedPrefKeyStoreWithRetry
 import dagger.Module
 import dagger.Provides
 import java.io.File
-import java.security.KeyStore
 import javax.inject.Named
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -122,46 +119,19 @@ internal class DownloadModule {
     @Singleton
     @Provides
     @Named(Constants.DI.STANDARD_SECURE_STORAGE)
-    fun standardSecureStorage(context: Context): SharedPreferences {
-        val keystoreAlias = "armadilloStandard"
-        val fileName = "armadillo.standard.secure"
-        return createEncryptedSharedPrefsKeyStore(context = context, fileName = fileName, keystoreAlias = keystoreAlias)
+    fun standardSecureStorage(context: Context): SharedPreferences? {
+        val keystoreAlias = STANDARD_STORE_ALIAS
+        val fileName = STANDARD_STORE_FILENAME
+        return createEncryptedSharedPrefKeyStoreWithRetry(context = context, fileName = fileName, keystoreAlias = keystoreAlias)
     }
 
     @Singleton
     @Provides
     @Named(Constants.DI.DRM_SECURE_STORAGE)
-    fun drmSecureStorage(context: Context): SharedPreferences {
-        val keystoreAlias = "armadillo"
-        val fileName = "armadillo.download.secure"
-        return createEncryptedSharedPrefsKeyStore(context = context, fileName = fileName, keystoreAlias = keystoreAlias)
-    }
-
-    private fun createEncryptedSharedPrefsKeyStore(context: Context, fileName: String, keystoreAlias: String)
-        : SharedPreferences {
-        val keySpec = KeyGenParameterSpec.Builder(keystoreAlias, PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
-            .setKeySize(256)
-            .setBlockModes(BLOCK_MODE_GCM)
-            .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
-            .build()
-
-        val keys = try {
-            MasterKeys.getOrCreate(keySpec)
-        } catch (ex: Exception) {
-            //clear corrupted store, contents will be lost
-            val keyStore = KeyStore.getInstance("AndroidKeyStore")
-            keyStore.load(null)
-            keyStore.deleteEntry(keystoreAlias)
-            context.getSharedPreferences(fileName, Context.MODE_PRIVATE).edit().clear().apply()
-            MasterKeys.getOrCreate(keySpec)
-        }
-        return EncryptedSharedPreferences.create(
-            fileName,
-            keys,
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+    fun drmSecureStorage(context: Context): SharedPreferences? {
+        val keystoreAlias = DOWNLOAD_STORE_ALIAS
+        val fileName = DOWNLOAD_STORE_FILENAME
+        return createEncryptedSharedPrefKeyStoreWithRetry(context = context, fileName = fileName, keystoreAlias = keystoreAlias)
     }
 
     @Singleton
