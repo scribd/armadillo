@@ -10,14 +10,14 @@ import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
-import com.scribd.armadillo.Constants.DI.STANDARD_STORE_FILENAME
 import com.scribd.armadillo.Constants.Keys.ANDROID_KEYSTORE_NAME
 import java.io.File
 import java.security.KeyStore
 
-fun SharedPreferences.deleteSharedPreference(context: Context, filename: String, keystoreAlias: String) {
+fun SharedPreferences.deleteEncryptedSharedPreference(context: Context, filename: String, keystoreAlias: String) {
     val tag = "DeletingSharedPrefs"
     try {
+        //maybe deletes the shared preference file, this is not guaranteed to work.
         val sharedPrefsFile = File(
             (context.filesDir.getParent()?.plus("/shared_prefs/")) + filename + ".xml"
         )
@@ -44,7 +44,7 @@ fun createEncryptedSharedPrefKeyStoreWithRetry(context: Context, fileName: Strin
     return if(firstAttempt != null) {
         firstAttempt
     } else {
-        context.getSharedPreferences(fileName, Context.MODE_PRIVATE).deleteSharedPreference(
+        context.getSharedPreferences(fileName, Context.MODE_PRIVATE).deleteEncryptedSharedPreference(
             context = context,
             filename = fileName,
             keystoreAlias = keystoreAlias
@@ -65,7 +65,7 @@ fun createEncryptedSharedPrefsKeyStore(context: Context, fileName: String, keyst
         MasterKeys.getOrCreate(keySpec)
     } catch (ex: Exception) {
         //clear corrupted store, contents will be lost
-        context.getSharedPreferences(fileName, Context.MODE_PRIVATE).deleteSharedPreference(
+        context.getSharedPreferences(fileName, Context.MODE_PRIVATE).deleteEncryptedSharedPreference(
             context = context,
             filename = fileName,
             keystoreAlias = keystoreAlias )
