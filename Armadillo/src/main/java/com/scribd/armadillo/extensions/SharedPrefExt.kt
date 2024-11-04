@@ -28,7 +28,7 @@ fun SharedPreferences.deleteEncryptedSharedPreference(context: Context, filename
             val deleted = sharedPrefsFile.delete()
             Log.d(tag, "resetStorage() Shared prefs file deleted: $deleted; path: ${sharedPrefsFile.absolutePath}")
         } else {
-            Log.d(tag,"resetStorage() Shared prefs file non-existent; path: ${sharedPrefsFile.absolutePath}")
+            Log.d(tag, "resetStorage() Shared prefs file non-existent; path: ${sharedPrefsFile.absolutePath}")
         }
 
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_NAME)
@@ -41,7 +41,7 @@ fun SharedPreferences.deleteEncryptedSharedPreference(context: Context, filename
 
 fun createEncryptedSharedPrefKeyStoreWithRetry(context: Context, fileName: String, keystoreAlias: String): SharedPreferences? {
     val firstAttempt = createEncryptedSharedPrefsKeyStore(context = context, fileName = fileName, keystoreAlias = keystoreAlias)
-    return if(firstAttempt != null) {
+    return if (firstAttempt != null) {
         firstAttempt
     } else {
         context.getSharedPreferences(fileName, Context.MODE_PRIVATE).deleteEncryptedSharedPreference(
@@ -61,17 +61,18 @@ fun createEncryptedSharedPrefsKeyStore(context: Context, fileName: String, keyst
         .setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
         .build()
 
-    val keys = try {
-        MasterKeys.getOrCreate(keySpec)
-    } catch (ex: Exception) {
-        //clear corrupted store, contents will be lost
-        context.getSharedPreferences(fileName, Context.MODE_PRIVATE).deleteEncryptedSharedPreference(
-            context = context,
-            filename = fileName,
-            keystoreAlias = keystoreAlias )
-        MasterKeys.getOrCreate(keySpec)
-    }
     return try {
+        val keys = try {
+            MasterKeys.getOrCreate(keySpec)
+        } catch (ex: Exception) {
+            //clear corrupted store, contents will be lost
+            context.getSharedPreferences(fileName, Context.MODE_PRIVATE).deleteEncryptedSharedPreference(
+                context = context,
+                filename = fileName,
+                keystoreAlias = keystoreAlias)
+            MasterKeys.getOrCreate(keySpec)
+        }
+
         EncryptedSharedPreferences.create(
             fileName,
             keys,
@@ -79,7 +80,7 @@ fun createEncryptedSharedPrefsKeyStore(context: Context, fileName: String, keyst
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-    } catch(ex: Exception) {
+    } catch (ex: Exception) {
         null
     }
 }
