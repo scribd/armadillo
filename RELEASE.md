@@ -1,5 +1,8 @@
 # Project Armadillo Release Notes
 
+## 1.6.9
+- Improves the crash fix from 1.6.8, so that even retries on EncryptedSharedPreferences does not crash.
+
 ## 1.6.8
 - Fixes an app startup crash to EncryptedSharedPreference faults. 
 - Adds resilience to playing unencrypted content if it is optionally drm enabled.
