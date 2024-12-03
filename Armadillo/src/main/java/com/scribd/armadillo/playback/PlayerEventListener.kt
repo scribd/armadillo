@@ -16,6 +16,7 @@ import com.scribd.armadillo.actions.SeekAction
 import com.scribd.armadillo.actions.UpdateProgressAction
 import com.scribd.armadillo.di.Injector
 import com.scribd.armadillo.models.PlaybackState
+import com.scribd.armadillo.time.milliseconds
 import javax.inject.Inject
 
 /**
@@ -46,9 +47,9 @@ internal class PlayerEventListener @Inject constructor(private val context: Cont
         stateModifier.dispatch(LoadingAction(isLoading))
     }
 
-    override fun onPositionDiscontinuity(reason: Int) {
+    override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
         Log.v(TAG, "onPositionDiscontinuity --- reason: $reason")
-        stateModifier.dispatch(SeekAction(false, null))
+        stateModifier.dispatch(SeekAction(false, newPosition.contentPositionMs.milliseconds))
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) = Unit

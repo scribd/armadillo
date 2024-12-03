@@ -1,5 +1,9 @@
 # Project Armadillo Release Notes
 
+## 1.7.0
+- Fixes the playback progress being incorrect between a seek finishing and the next playback update. The progress position now updates 
+  immediately to the seek target when the seek finishes
+
 ## 1.6.9
 - Improves the crash fix from 1.6.8, so that even retries on EncryptedSharedPreferences does not crash.
 
