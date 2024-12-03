@@ -195,9 +195,12 @@ internal object Reducer {
                             seekTarget = action.seekPositionTarget)
                     } else MediaControlState()
 
+                    // When we finish a seek, update our progress to the target
+                    val newProgress = if (action.isSeeking) { playbackInfo.progress.positionInDuration } else { action.seekPositionTarget }
                     oldState.copy(playbackInfo = playbackInfo.copy(
-                        controlState = controlState))
-                        .apply { debugState = newDebug }
+                        controlState = controlState,
+                        progress = playbackInfo.progress.copy(positionInDuration = newProgress)
+                    )).apply { debugState = newDebug }
                 }
 
                 is FastForwardAction -> {

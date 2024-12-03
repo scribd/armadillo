@@ -58,7 +58,7 @@ internal data class UpdateProgressAction(val isUpdated: Boolean, val currentChap
 // Media Control State updates - updates control info in ArmadilloState / exposes player intent to users
 
 /** For a beginning or end of a seek (discontinuity). when isSeeking is becoming false, the seek action is resolved. */
-internal data class SeekAction(val isSeeking: Boolean, val seekPositionTarget: Milliseconds?) : Action {
+internal data class SeekAction(val isSeeking: Boolean, val seekPositionTarget: Milliseconds) : Action {
     override val name = "Seeking: $isSeeking"
 }
 

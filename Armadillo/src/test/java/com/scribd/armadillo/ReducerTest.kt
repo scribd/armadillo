@@ -30,6 +30,7 @@ import com.scribd.armadillo.models.DownloadState
 import com.scribd.armadillo.models.DrmState
 import com.scribd.armadillo.models.DrmType
 import com.scribd.armadillo.models.InternalState
+import com.scribd.armadillo.models.MediaControlState
 import com.scribd.armadillo.models.PlaybackProgress
 import com.scribd.armadillo.models.PlaybackState
 import com.scribd.armadillo.time.milliseconds
@@ -157,7 +158,7 @@ class ReducerTest {
         val identicalActions = listOf(MockModels.progressAction(), MockModels.progressAction())
         var appState2 = MockModels.appState()
         identicalActions.forEach {
-            appState2 = Reducer.reduce(appState2, it)
+            appState2 = Reducer.reduce(appState1, it)
         }
 
         assertThat(appState1).isEqualTo(appState2)
@@ -200,8 +201,8 @@ class ReducerTest {
 
     @Test
     fun reduce_skipNext_clearsOtherSeekControls() {
-        Reducer.reduce(MockModels.appState(), SkipPrevAction(100.milliseconds))
-        val secondSeek = Reducer.reduce(MockModels.appState(), SkipNextAction(4000.milliseconds))
+        val firstState = Reducer.reduce(MockModels.appState(), SkipPrevAction(100.milliseconds))
+        val secondSeek = Reducer.reduce(firstState, SkipNextAction(4000.milliseconds))
 
         assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
@@ -212,8 +213,8 @@ class ReducerTest {
 
     @Test
     fun reduce_skipPrev_clearsOtherSeekControls() {
-        Reducer.reduce(MockModels.appState(), SkipNextAction(100.milliseconds))
-        val secondSeek = Reducer.reduce(MockModels.appState(), SkipPrevAction(4000.milliseconds))
+        val firstState = Reducer.reduce(MockModels.appState(), SkipNextAction(100.milliseconds))
+        val secondSeek = Reducer.reduce(firstState, SkipPrevAction(4000.milliseconds))
 
         assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
@@ -224,8 +225,8 @@ class ReducerTest {
 
     @Test
     fun reduce_fastForward_clearsOtherSeekControls() {
-        Reducer.reduce(MockModels.appState(), RewindAction(100.milliseconds))
-        val secondSeek = Reducer.reduce(MockModels.appState(), FastForwardAction(4000.milliseconds))
+        val firstState = Reducer.reduce(MockModels.appState(), RewindAction(100.milliseconds))
+        val secondSeek = Reducer.reduce(firstState, FastForwardAction(4000.milliseconds))
 
         assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
@@ -236,8 +237,8 @@ class ReducerTest {
 
     @Test
     fun reduce_rewind_clearsOtherSeekControls() {
-        Reducer.reduce(MockModels.appState(), FastForwardAction(100.milliseconds))
-        val secondSeek = Reducer.reduce(MockModels.appState(), RewindAction(4000.milliseconds))
+        val firstState = Reducer.reduce(MockModels.appState(), FastForwardAction(100.milliseconds))
+        val secondSeek = Reducer.reduce(firstState, RewindAction(4000.milliseconds))
 
         assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
@@ -247,21 +248,32 @@ class ReducerTest {
     }
 
     @Test
+    fun reduce_seekStart_setsSeekControls() {
+        val initialState = MockModels.appState()
+        val seekState = Reducer.reduce(initialState, SeekAction(true, 300.milliseconds))
+
+        assertThat(seekState.playbackInfo?.progress).isEqualTo(initialState.playbackInfo?.progress)
+        assertThat(seekState.playbackInfo?.controlState?.isSeeking).isTrue
+        assertThat(seekState.playbackInfo?.controlState?.seekTarget).isEqualTo(300.milliseconds)
+    }
+
+    @Test
     fun reduce_seekFinish_allSeekControlsFalse() {
-        Reducer.reduce(MockModels.appState(), FastForwardAction(100.milliseconds))
-        val secondSeek = Reducer.reduce(MockModels.appState(), SeekAction(false, null))
+        val firstState = Reducer.reduce(MockModels.appState(), FastForwardAction(100.milliseconds))
+        val secondSeek = Reducer.reduce(firstState, SeekAction(false, 300.milliseconds))
 
         assertThat(secondSeek.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isRewinding ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isPrevChapter ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isNextChapter ?: true).isFalse
         assertThat(secondSeek.playbackInfo?.controlState?.isSeeking).isFalse
+        assertThat(secondSeek.playbackInfo?.progress?.positionInDuration).isEqualTo(300.milliseconds)
     }
 
     @Test
     fun reduce_playbackStopDuringSeek_clearSeekControls() {
-        Reducer.reduce(MockModels.appState(), FastForwardAction(100000.milliseconds))
-        val state = Reducer.reduce(MockModels.appState(), PlayerStateAction(PlaybackState.NONE))
+        val firstState = Reducer.reduce(MockModels.appState(), FastForwardAction(100000.milliseconds))
+        val state = Reducer.reduce(firstState, PlayerStateAction(PlaybackState.NONE))
 
         assertThat(state.playbackInfo?.controlState?.isStopping).isTrue
         assertThat(state.playbackInfo?.controlState?.isFastForwarding ?: true).isFalse
