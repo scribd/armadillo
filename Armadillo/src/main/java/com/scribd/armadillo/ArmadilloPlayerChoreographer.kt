@@ -46,7 +46,9 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import javax.inject.Inject
+import kotlin.concurrent.withLock
 
 /**
  * The client will use [ArmadilloPlayer] to communicate with the [ArmadilloPlayerChoreographer].
@@ -248,6 +250,8 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
 
     private var isDownloadEngineInit = false
 
+    private val cacheLock = ReentrantLock()
+
     /**
      * Used to delegates all actions to the player. ex. [MediaControllerCompat.TransportControls.play]
      */
@@ -282,7 +286,9 @@ internal class ArmadilloPlayerChoreographer : ArmadilloPlayer {
     }
 
     override fun clearCache() = runHandler {
-        cacheManager.clearPlaybackCache()
+        cacheLock.withLock {
+            cacheManager.clearPlaybackCache()
+        }
     }
 
     override fun removeAllDownloads() = runHandler {
